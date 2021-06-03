@@ -115,7 +115,7 @@ def spreadsheet(screen_width,screen_height):
 
 #################### save stuff #########################
     def saveFile(directory=None,saveAs = False):
-        filter = "Pandas Object(*.pdobj);;Numpy Object(*.npobj);;CSV(*.csv);;JSON(*.json);;PDF( *.pdf)"
+        filter = "Pandas Object(*.pdobj);;Numpy Object(*.npobj);;CSV(*.csv);;JSON(*.json);;HTML(*.html);;Excel(*.xlsx);;PDF( *.pdf)"
         if saveAs:
             directory, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File', 'c://',filter=filter)
 
@@ -140,22 +140,28 @@ def spreadsheet(screen_width,screen_height):
         print(filter)
 
         if '.pdobj' in filter:
-            directory+='.pdobj'
+            directory = directory+'.pdobj' if '.pdobj' not in directory else directory
             joblib.dump(data,directory,9)
+
         elif '.csv' in filter:
-            data.to_csv(directory, index=False)
+            directory = directory+'.csv' if '.csv' not in directory else directory
+            data.to_csv(directory, index=False,header=False)
 
         elif '.json' in filter:
             directory = directory+'.json' if '.json' not in directory else directory
             out = data.to_json(directory,index=False,orient= 'table')
 
         elif '.html' in filter:
-            data.to_html(directory,index=False)
+            directory = directory+'.html' if '.html' not in directory else directory
+            html = data.to_html()
+            with open(directory,'w') as f:
+                f.write(html)
+                f.close()
 
         elif'.xlsx'in directory:
             directory = directory+'.xlsx' if '.xlsx' not in directory else directory
             data.to_excel(directory,index=False)
-            
+
         elif '.h5'in filter:
             data.to_hdf(directory,key='0')
 
