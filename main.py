@@ -46,6 +46,7 @@ def spreadsheet(screen_width,screen_height):
             if role == Qt.EditRole:
                 saved_file = False
                 self.array[index.row()][index.column()] = value # asign new data to array
+                tableWidget.update()
                 return True
 
         def flags(self, index):
