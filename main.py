@@ -115,33 +115,48 @@ def spreadsheet(screen_width,screen_height):
 
 #################### save stuff #########################
     def saveFile(directory=None,saveAs = False):
-        filter = "CSV(*.csv);;PDF( *.pdf)"
+        filter = "Pandas Object(*.pdobj);;Numpy Object(*.npobj);;CSV(*.csv);;JSON(*.json);;PDF( *.pdf)"
         if saveAs:
             directory, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File', 'c://',filter=filter)
-        elif not directory and len(menuSave.objectName())<3:
+
+        elif directory==None and len(menuSave.objectName())<3:
             directory, filter=QFileDialog.getSaveFileName(menuWidget,'Save File','c://',filter=filter)
+
+        elif directory!=None:
+            directory = str(directory)
+
+            if len(directory.split('.'))>1:
+                filter = '.'+directory.split('.')[-1]
+            else:
+                filter = '.pdobj'
+
         elif len(menuSave.objectName())>3:
             directory= menuSave.objectName()
+            filter = directory.split('.')[-1]
 
-        if '.'not in directory:
-            directory+='.csv'
-
-        if not tableWidget.model().headers:
-            headers = None
-        else:
-            headers = tableWidget.model().headers
+        headers = tableWidget.model().headers
 
         data = pd.DataFrame(tableWidget.model().array,columns=headers)
+        print(filter)
 
-        if '.csv' in directory:
+        if '.pdobj' in filter:
+            directory+='.pdobj'
+            joblib.dump(data,directory,9)
+        elif '.csv' in filter:
             data.to_csv(directory, index=False)
-        elif '.json' in directory:
-            data.to_json(directory,index=False,orient= 'table')
-        elif '.html' in directory:
+
+        elif '.json' in filter:
+            directory = directory+'.json' if '.json' not in directory else directory
+            out = data.to_json(directory,index=False,orient= 'table')
+
+        elif '.html' in filter:
             data.to_html(directory,index=False)
+
         elif'.xlsx'in directory:
+            directory = directory+'.xlsx' if '.xlsx' not in directory else directory
             data.to_excel(directory,index=False)
-        elif '.h5'in directory:
+            
+        elif '.h5'in filter:
             data.to_hdf(directory,key='0')
 
     def exportJoblib(dtype='np'): # export numpy array by joblib
@@ -430,7 +445,7 @@ def spreadsheet(screen_width,screen_height):
     return table_tab_box
 
 if __name__ == '__main__':
-    saved_file = False
+    saved_file = True
     def closeEventHandler(event):
         if saved_file == True:
             event.accept()
