@@ -12,7 +12,7 @@ def spreadsheet(screen_width,screen_height):
         # when tableView is rendered, data of each cell would be called through self.data
         # this method avoid creating widgets for each cell e.g. QtableWiget
         # by storing data in numpy array, fast processing of data could be performed
-        def __init__(self, array, headers= False,parent=None):
+        def __init__(self, array, headers= None,parent=None):
             super().__init__(parent)
             self.array = array # call current array later through tableWidget.model().array
             self.headers = headers
@@ -20,8 +20,11 @@ def spreadsheet(screen_width,screen_height):
         def headerData(self, section: int, orientation: Qt.Orientation, role: int):
             if role == Qt.DisplayRole:
                 if orientation == Qt.Horizontal:
-                    if self.headers:
-                        return self.headers[section]  # column
+                    if self.headers != None:
+                        try:
+                            return self.headers[section]  # column
+                        except :
+                            return str(section)
                     else:
                         return str(section)
                 else:
@@ -102,8 +105,13 @@ def spreadsheet(screen_width,screen_height):
         file_name, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', 'c://', filter=filter)
         if '.npobj' in file_name:
             data = joblib.load(file_name)
+            header = None
+        if '.pdobj' in file_name:
+            dataframe = joblib.load(file_name)
+            header = list(dataframe.keys())
+            data = np.array(dataframe)
         
-        tableWidget.setModel(MyTableModel(data))
+        tableWidget.setModel(MyTableModel(data,headers=header))
 
 #################### save stuff #########################
     def saveFile(directory=None,saveAs = False):
@@ -137,13 +145,17 @@ def spreadsheet(screen_width,screen_height):
             data.to_hdf(directory,key='0')
 
     def exportJoblib(dtype='np'): # export numpy array by joblib
+        filename, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File', 'c://')
         if dtype=='np':
-            filename, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File', 'c://')
             filename += '.npobj'
             array = tableWidget.model().array
             joblib.dump(array,filename,9)
         elif dtype == 'pd':
-            pass 
+            filename +='.pdobj'
+            headers = tableWidget.model().headers
+            data = pd.DataFrame(tableWidget.model().array,columns=headers)
+            joblib.dump(data,filename,9)
+
         
 
 ################# local functions ########################
@@ -354,10 +366,14 @@ def spreadsheet(screen_width,screen_height):
     menuSave = file.addAction("Save")
     menuSave.triggered.connect(saveFile)
     menuSave.setShortcut("Ctrl+s")
+
     menuImport = file.addMenu('&Import')
     menuImport.addAction('numpy object(joblib)').triggered.connect(importJoblib)
+
     menuExport = file.addMenu('&Export')
     menuExport.addAction('numpy object(joblib)').triggered.connect(exportJoblib)
+    menuExport.addAction('pandas object(joblib)').triggered.connect(lambda :exportJoblib('pd'))
+
     edit = bar.addMenu("Edit")
     edit.addAction("cu&t")#.setShortcut("Ctrl+X")
     edit.addAction("copy")#.setShortcut("Ctrl+C")
