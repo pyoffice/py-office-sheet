@@ -181,6 +181,13 @@ def spreadsheet(screen_width,screen_height):
         
 
 ################# local functions ########################
+    def alertbox(err):
+        alert = QMessageBox()
+        alert.setWindowTitle('ERROR')
+        alert.setWindowIcon(QIcon('pic/icon/warning.png'))
+        alert.setText(str(err))
+        alert.exec()
+        alert.deleteLater()
 
     def changeEncodeMethod(a):
         for i in [utf_8,utf_7,utf_16,utf_32,ascii,big5,cp,cp037]:
@@ -273,6 +280,12 @@ def spreadsheet(screen_width,screen_height):
             box.exec_()
 
         box.exec_()
+
+    def webview(site):
+        import webview
+
+        w = webview.WebView(width=int(screen_width/2), height=int(screen_height/2), title=site, url="https://www.desmos.com/calculator", resizable=True, debug=False)
+        w.run()
 
 
 
@@ -425,8 +438,11 @@ def spreadsheet(screen_width,screen_height):
     cp037.triggered.connect(lambda: changeEncodeMethod([cp,cp037]))
 
     view = bar.addMenu('&View')
+    tools = bar.addMenu('Tool')
+    tools.addAction('desmos').triggered.connect(lambda :webview('desmos'))
     bar.addAction('Functions').triggered.connect(manageFunction)
     bar.addAction('Analyze').triggered.connect(analyze)
+    bar.addAction('library')
 
     def changeBarLayout(button):
         if button == 'home':
@@ -472,6 +488,8 @@ if __name__ == '__main__':
     mainWidget.setLayout(spreadsheet(1920,1080))
     mainWidget.show()
     mainWidget.closeEvent = closeEventHandler
+    mainWidget.setWindowState(Qt.WindowMaximized)
+    mainWidget.setWindowTitle('spreadsheet')
     #app.aboutToQuit.connect(closeEventHandler)
     app.exec_()
     gc.collect()
