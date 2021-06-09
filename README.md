@@ -5,7 +5,7 @@ A cross-platform spreadsheet based on pandas and numpy for effecient data proces
 - support python scripting
 
 light mode:
-![alt text](https://raw.githubusercontent.com/YC-Lammy/np_spreadsheet/main/doc/Screenshot_20210609_111003.png)
+![alt text](https://raw.githubusercontent.com/YC-Lammy/np_spreadsheet/main/doc/Screenshot_20210609_111555.png)
 
 
 dark mode:
