@@ -1,7 +1,9 @@
 import gc, sys, joblib
+
 from PySide2.QtWidgets import *
 from PySide2.QtCore import *
 from PySide2.QtGui import *
+
 import pandas as pd
 import numpy as np
 
@@ -246,9 +248,9 @@ def spreadsheet(screen_width,screen_height):
             encode.setObjectName(i.text())
 
 
-    def spreadsheetCommand():
+    def spreadsheetCommand(interactive=False,scripting = False):
         import spreadsheet_command
-        spreadsheet_command.main(commandBar,printOutLabel,tableWidget,MyTableModel)
+        spreadsheet_command.main(commandBar,printOutLabel,tableWidget,MyTableModel,scripting=scripting,interact=interactive,screen_width=screen_width,screen_height=screen_height)
 
     def commandHandler(event):
         text = event.text()
@@ -494,11 +496,17 @@ def spreadsheet(screen_width,screen_height):
     cp037.triggered.connect(lambda: changeEncodeMethod([cp,cp037]))
 
     view = bar.addMenu('&View')
+
     tools = bar.addMenu('Tool')
     tools.addAction('desmos').triggered.connect(lambda :webview('desmos'))
+
     bar.addAction('Functions').triggered.connect(manageFunction)
+
     bar.addAction('Analyze').triggered.connect(analyze)
+
     bar.addAction('library')
+
+    bar.addAction('console').triggered.connect(lambda :spreadsheetCommand(interactive=True))
 
     def changeBarLayout(button):
         if button == 'home':

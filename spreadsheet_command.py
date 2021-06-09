@@ -7,14 +7,13 @@
 # if modify the shape of array, tableWidget.setModel(tableModel(ndarray, headers= headers))
 # good luck !
 
-from typing_extensions import ParamSpecArgs
 
-
-def main(commandBar, printOutLabel, tableWidget, tableModel,scripting = False, interact=False):
+def main(commandBar, printOutLabel, tableWidget, tableModel,scripting = False, interact=False,screen_width=None,screen_height=None):
     import numpy as np
     import sys
 
     array = tableWidget.model().array
+    commands = []
 
     def print(*args,**kw):
         colsep= kw.get('sep',' ')
@@ -37,7 +36,20 @@ def main(commandBar, printOutLabel, tableWidget, tableModel,scripting = False, i
             exec(command)
         except Exception as e:
             print(e)
+        commandBar.clear()
     elif scripting:
         pass
     elif interact:
-        pass
+        import console
+        import threading
+        from PySide2.QtWidgets import QDialog
+        def interact():
+            layout = console.console(screen_width,screen_height)
+            window =QDialog()
+            window.setMinimumSize(screen_width/2,screen_height/2)
+            window.setLayout(layout)
+            window.setWindowTitle('python console')
+            window.exec_()
+        a = threading.Thread(target=interact,daemon=True)
+        a.start()
+        
