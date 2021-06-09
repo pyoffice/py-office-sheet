@@ -104,7 +104,7 @@ def spreadsheet(screen_width,screen_height):
 
     
     def opencsv(file):
-        #global pandas_data
+        global pandas_data
         data = pd.read_csv(file)
         pandas_data = data
         headers = list(data.keys())
@@ -112,12 +112,9 @@ def spreadsheet(screen_width,screen_height):
         tableWidget.setModel(MyTableModel(data,headers=headers))
 
     def openexel(file):
-        #global pandas_data
+        global pandas_data
         data = pd.read_excel(file,sheet_name=None)
         sheets = list(data.keys())
-        if len(sheets)>1:
-            pass
-        pandas_data = data
 
         num= [0]
         if len(sheets) >1:
@@ -142,9 +139,15 @@ def spreadsheet(screen_width,screen_height):
             dialog.deleteLater()
 
         data = np.array(data[sheets[num[0]]])
+
         tableWidget.setModel(MyTableModel(data))
+
+        headers = tableWidget.model().headers
+
+        pandas_data = pd.DataFrame(tableWidget.model().array,columns=headers)
     
     def importJoblib(pick=True,filename=None,filter=None): # main importer to load binary file
+        global pandas_data
         if pick:
             filter = 'Python Object(*.npobj *.pdobj)'
             filename, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', 'c://', filter=filter)
@@ -157,6 +160,10 @@ def spreadsheet(screen_width,screen_height):
             data = np.array(dataframe)
         
         tableWidget.setModel(MyTableModel(data,headers=header))
+
+        headers = tableWidget.model().headers
+
+        pandas_data = pd.DataFrame(tableWidget.model().array,columns=headers)
 
 #################### save stuff #########################
     def saveFile(directory=None,saveAs = False):
@@ -468,10 +475,15 @@ def spreadsheet(screen_width,screen_height):
     menuExport.addAction('pandas object(joblib)').triggered.connect(lambda :exportJoblib('pd'))
 
     edit = bar.addMenu("Edit")
-    edit.addAction("cu&t")#.setShortcut("Ctrl+X")
+    editCut= edit.addAction("cu&t")
+    editCut.setShortcut(QKeySequence("Ctrl+X"))
+    #editCut.trigger.connect(cutCopyPasteHandler)
+
     edit.addAction("copy")#.setShortcut("Ctrl+C")
     edit.addAction("paste")#.setShortcut("Ctrl+V")
+
     edit.addSeparator()
+
     find  = edit.addMenu("Find...")
     find.addAction("Find")
     find.addAction("Replace")
@@ -498,7 +510,10 @@ def spreadsheet(screen_width,screen_height):
     view = bar.addMenu('&View')
 
     tools = bar.addMenu('Tool')
+
+    # show website https://www.desmos.com/calculator using package webview, func at line 335
     tools.addAction('desmos').triggered.connect(lambda :webview('desmos'))
+
 
     bar.addAction('Functions').triggered.connect(manageFunction)
 
@@ -506,9 +521,10 @@ def spreadsheet(screen_width,screen_height):
 
     bar.addAction('library')
 
+    # call function from imported module, state interactive mode, func at line 251
     bar.addAction('console').triggered.connect(lambda :spreadsheetCommand(interactive=True))
 
-    def changeBarLayout(button):
+    def changeBarLayout(button): # this switches between the home and command menu
         if button == 'home':
             homeAction.setDisabled(True)
             commandAction.setEnabled(True)
@@ -523,38 +539,44 @@ def spreadsheet(screen_width,screen_height):
             commandWidget.show()
 
     homeAction = bar.addAction('Home')
-    homeAction.triggered.connect(lambda :changeBarLayout('home'))
+    homeAction.triggered.connect(lambda :changeBarLayout('home')) # hardcode the selection
     homeAction.setDisabled(True)
 
     commandAction = bar.addAction('command')
     commandAction.triggered.connect(lambda :changeBarLayout('command'))
 
-    return table_tab_box
+    return table_tab_box # return the main layout
+
+########################### execute ################################
 
 if __name__ == '__main__':
-    saved_file = True
-    current_file_name = None
-    def closeEventHandler(event):
-        if saved_file == True:
+
+    saved_file = True #state if the file is modified, notice user to save file
+    current_file_name = None #current file name is the file user opened using open file function
+
+    def closeEventHandler(event): # this function is called when user tries to close app, line 559
+
+        if saved_file == True: # is nothing is modified, quit normally
             event.accept()
         else:
             m = QMessageBox()
             m.setWindowTitle('file not save')
-            ret = m.question(mainWidget,'', "Exit without saving?", m.Yes | m.No,m.No)
+            ret = m.question(mainWidget,'', "Exit without saving?", m.Yes | m.No,m.No) # default as No
 
             if ret == m.Yes:
-                event.accept()
+                event.accept() # if user choose yes, exit without saving
             else:
-                event.ignore()
+                event.ignore() # when user choose no, stop exit event
 
     app = QApplication(sys.argv)
+
     mainWidget = QWidget()
-    mainWidget.setLayout(spreadsheet(1920,1080))
+    mainWidget.setLayout(spreadsheet(1920,1080)) # spreedsheet returns a layout
     mainWidget.show()
-    mainWidget.closeEvent = closeEventHandler
+    mainWidget.closeEvent = closeEventHandler # reassign the app's close event
     mainWidget.setWindowState(Qt.WindowMaximized)
-    mainWidget.setWindowTitle('spreadsheet')
-    #app.aboutToQuit.connect(closeEventHandler)
+    mainWidget.setWindowTitle('spreadsheet') # actual title not desided
+
     app.exec_()
     gc.collect()
     sys.exit()
