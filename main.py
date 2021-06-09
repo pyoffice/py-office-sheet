@@ -23,6 +23,7 @@ from PySide2.QtGui import *
 import pandas as pd
 import numpy as np
 from string import ascii_uppercase
+from webbrowser import open as webbrowser_open
 
 def spreadsheet(screen_width,screen_height):
     global saved_file
@@ -354,8 +355,10 @@ def spreadsheet(screen_width,screen_height):
                 i.setText(e + '\nnow upgrading pillow')
                 i.exec_()
                 from matplotlib import pyplot as plt
+                
         plt.plot([4,6,2,8,99,22,73,68])
         box = QDialog()
+        box.setMinimumSize(screen_width/2,screen_height/2)
         box.setWindowTitle('Analyze data')
         layout = QFormLayout()
         graphOption = QComboBox()
@@ -363,13 +366,23 @@ def spreadsheet(screen_width,screen_height):
 
         layout.addRow(QLabel('Library: '),graphOption)
 
+        advenceBt = QPushButton('Advence')
+        advenceBt.setFlat(True)
+        
+        advenceLayout = QFormLayout()
+        advenceLayout.addRow(QLabel('hello'),QCheckBox())
+        advenceWidget = QWidget()
+        advenceWidget.setLayout(advenceLayout)
+        advenceBt.clicked.connect(lambda: advenceWidget.show()if advenceWidget.isHidden() else advenceWidget.hide()) # if hidden,show. if shown,hide
+
         plotBt = QPushButton('Plot')
 
         # plt.show() automatically creates a new window through qt
         plotBt.clicked.connect(lambda :plt.show()| box.close() ) 
 
+        layout.addWidget(advenceBt)
+        layout.addWidget(advenceWidget)
         layout.addWidget(plotBt)
-        
         box.setLayout(layout)
         box.exec_()
 
@@ -601,6 +614,9 @@ def spreadsheet(screen_width,screen_height):
 
     commandAction = bar.addAction('command')
     commandAction.triggered.connect(lambda :changeBarLayout('command'))
+
+    menuhelp = bar.addAction('help').triggered.connect(lambda : webbrowser_open('https://github.com/YC-Lammy/np_spreadsheet/issues'))
+
 
     return table_tab_box # return the main layout
 
