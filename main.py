@@ -1,4 +1,5 @@
 import gc, sys, joblib
+from typing import Any
 
 from PySide2.QtWidgets import *
 from PySide2.QtCore import *
@@ -6,7 +7,7 @@ from PySide2.QtGui import *
 
 import pandas as pd
 import numpy as np
-
+from string import ascii_uppercase
 
 def spreadsheet(screen_width,screen_height):
     global saved_file
@@ -18,6 +19,20 @@ def spreadsheet(screen_width,screen_height):
             super().__init__(parent)
             self.array = array # call current array later through tableWidget.model().array
             self.headers = headers
+            self.di=dict(zip([str((ord(c)%32)-1) for c in ascii_uppercase],ascii_uppercase))
+            if '<U' in str(array.dtype) :
+                self.numeric = False
+            else:
+                self.numeric = True
+
+        def formatNumericHeader(self,section):
+            if '10' in section:
+                pass
+            section = [i for i in section]
+            a =''
+            for i in section:
+                a += self.di[i]
+            return a
 
         def headerData(self, section: int, orientation: Qt.Orientation, role: int):
             if role == Qt.DisplayRole:
@@ -26,9 +41,9 @@ def spreadsheet(screen_width,screen_height):
                         try:
                             return self.headers[section]  # column
                         except :
-                            return str(section)
+                            return self.formatNumericHeader(str(section))
                     else:
-                        return str(section)
+                        return self.formatNumericHeader(str(section)) # column
                 else:
                     return str(section)  # row
 
@@ -51,6 +66,11 @@ def spreadsheet(screen_width,screen_height):
                     if value[0] == '=':
                         return True
                     saved_file = False
+                    if value.isnumeric() and self.numeric:
+                        if 'float' in str(self.array.dtype):
+                            value = float(value)
+                        elif 'int' in str(self.array.dtype):
+                            value = int(value)
                     self.array[index.row()][index.column()] = value # asign new data to array
                     tableWidget.update()
                     return True
@@ -345,10 +365,12 @@ def spreadsheet(screen_width,screen_height):
         w = webview.WebView(width=int(screen_width/2), height=int(screen_height/2), title=site, url="https://www.desmos.com/calculator", resizable=True, debug=False)
         w.run()
 
+    def managePip():
+        pass
 
 
 #################################################
-    data = np.array([['']*30]*30)
+    data = np.array([['']*60]*60,dtype='<U30')
     model = MyTableModel(data)
     table_tab_box = QVBoxLayout()
     tableWidget = QTableView()
@@ -388,14 +410,17 @@ def spreadsheet(screen_width,screen_height):
         tableWidget.resizeRowsToContents()
         tableWidget.resizeColumnsToContents()
 
+    fontTypeLabel = QLabel('style:')
     fontTypeCB = QComboBox()
+    
+    fontTypeCB.addItems(QFontDatabase().families())
 
-
-    fontSizeCB = QSpinBox()
-    fontSizeCB.setRange(6,48)
-    #fontSizeCB.addItems([str(i) for i in range(6,24)])
+    fontSizeLabel = QLabel('fontsize:')
+    fontSizeCB = QComboBox()
+    fontSizeCB.addItems([str(i) for i in range(6,24)])
 
     dtypeLabel = QLabel('dtype:')
+    dtypeLabel2 = QLabel('<U30')
     dtypeCB = QComboBox()
     dtypeCB.addItems(['float32','float64','int','complex','bytes','str'])
 
@@ -428,9 +453,12 @@ def spreadsheet(screen_width,screen_height):
 
     bar2 = QToolBar()
 
+    bar2.addWidget(fontTypeLabel)
     bar2.addWidget(fontTypeCB)
+    bar2.addWidget(fontSizeLabel)
     bar2.addWidget(fontSizeCB)
     bar2.addWidget(dtypeLabel)
+    bar2.addWidget(dtypeLabel2)
     bar2.addWidget(dtypeCB)
     bar2.addWidget(rowLabel)
     bar2.addWidget(rowCount)
@@ -514,11 +542,13 @@ def spreadsheet(screen_width,screen_height):
     # show website https://www.desmos.com/calculator using package webview, func at line 335
     tools.addAction('desmos').triggered.connect(lambda :webview('desmos'))
 
-
+    # user interface to manage moduler functions, allow custom functions, func at line 284
     bar.addAction('Functions').triggered.connect(manageFunction)
 
+    # analyze data using matplotlib, func at line 310
     bar.addAction('Analyze').triggered.connect(analyze)
 
+    # manage pip packages, func at line 348
     bar.addAction('library')
 
     # call function from imported module, state interactive mode, func at line 251
@@ -568,7 +598,7 @@ if __name__ == '__main__':
             else:
                 event.ignore() # when user choose no, stop exit event
 
-    app = QApplication(sys.argv)
+    app = QApplication(['-style fusion']+sys.argv)
 
     mainWidget = QWidget()
     mainWidget.setLayout(spreadsheet(1920,1080)) # spreedsheet returns a layout
