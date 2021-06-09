@@ -1,3 +1,17 @@
+"""    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import gc, sys, joblib
 from typing import Any
 
@@ -536,6 +550,13 @@ def spreadsheet(screen_width,screen_height):
     cp037.triggered.connect(lambda: changeEncodeMethod([cp,cp037]))
 
     view = bar.addMenu('&View')
+
+    viewStyle = view.addMenu('Style')
+    viewStyle.addAction('Breeze')
+    viewStyle.addAction('Oxygen')
+    viewStyle.addAction('QtCurve')
+    viewStyle.addAction('Fusion')
+    viewStyle.addAction('Windows')
 
     tools = bar.addMenu('Tool')
 
