@@ -43,11 +43,15 @@ def spreadsheet(screen_width,screen_height):
                 return str(self.array[row][col]) # return value of cell
 
         def setData(self, index, value, role): # set data would be called everytime user edit cell
+            global saved_file
             if role == Qt.EditRole:
-                saved_file = False
-                self.array[index.row()][index.column()] = value # asign new data to array
-                tableWidget.update()
-                return True
+                if value:
+                    saved_file = False
+                    self.array[index.row()][index.column()] = value # asign new data to array
+                    tableWidget.update()
+                    return True
+                else:
+                    return False
 
         def flags(self, index):
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
@@ -55,6 +59,15 @@ def spreadsheet(screen_width,screen_height):
 #####################r read stuff #########################################
 
     def pick_sys_file(filter="All files (*)"):
+        if saved_file == False:
+            m = QMessageBox()
+            m.setWindowTitle('file not save')
+            ret = m.question(mainWidget,'', "open new file without saving?", m.Yes | m.No,m.No)
+            
+            m.exec_()
+            if ret == m.No:
+                return None
+
         from mimetypes import guess_type
         if filter == False:
             filter = "All files (*)"
@@ -142,6 +155,7 @@ def spreadsheet(screen_width,screen_height):
 
 #################### save stuff #########################
     def saveFile(directory=None,saveAs = False):
+        global saved_file
         filter = "Pandas Object(*.pdobj);;Numpy Object(*.npobj);;CSV(*.csv);;JSON(*.json);;HTML(*.html);;Excel(*.xlsx);;PDF( *.pdf)"
         if saveAs:
             directory, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File', 'c://',filter=filter)
@@ -191,6 +205,7 @@ def spreadsheet(screen_width,screen_height):
 
         elif '.h5'in filter:
             data.to_hdf(directory,key='0')
+        saved_file = True
 
     def exportJoblib(dtype='np'): # export numpy array by joblib
         filename, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File', 'c://')
@@ -503,7 +518,7 @@ if __name__ == '__main__':
             m.setWindowTitle('file not save')
             ret = m.question(mainWidget,'', "Exit without saving?", m.Yes | m.No,m.No)
             
-            #m.exec_()
+            m.exec_()
             if ret == m.Yes:
                 event.accept()
             else:
