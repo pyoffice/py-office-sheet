@@ -61,12 +61,12 @@ def spreadsheet(screen_width,screen_height):
 #####################r read stuff #########################################
 
     def pick_sys_file(filter="All files (*)"):
+        global current_file_name
         if saved_file == False:
             m = QMessageBox()
             m.setWindowTitle('file not save')
             ret = m.question(mainWidget,'', "open new file without saving?", m.Yes | m.No,m.No)
             
-            m.exec_()
             if ret == m.No:
                 return None
 
@@ -97,6 +97,7 @@ def spreadsheet(screen_width,screen_height):
         rowCount.setValue(row)
 
         menuSave.setObjectName(file_name)
+        current_file_name = file_name
         return file_name
 
     
@@ -141,7 +142,7 @@ def spreadsheet(screen_width,screen_height):
         data = np.array(data[sheets[num[0]]])
         tableWidget.setModel(MyTableModel(data))
     
-    def importJoblib(pick=True,filename=None,filter=None):
+    def importJoblib(pick=True,filename=None,filter=None): # main importer to load binary file
         if pick:
             filter = 'Python Object(*.npobj *.pdobj)'
             filename, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', 'c://', filter=filter)
@@ -162,7 +163,7 @@ def spreadsheet(screen_width,screen_height):
         if saveAs:
             directory, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File', 'c://',filter=filter)
 
-        elif directory==None and len(menuSave.objectName())<3:
+        elif directory==None and current_file_name == None:
             directory, filter=QFileDialog.getSaveFileName(menuWidget,'Save File','c://',filter=filter)
 
         elif directory!=None:
@@ -173,9 +174,11 @@ def spreadsheet(screen_width,screen_height):
             else:
                 filter = '.pdobj'
 
-        elif len(menuSave.objectName())>3:
-            directory= menuSave.objectName()
-            filter = directory.split('.')[-1]
+        
+
+        elif current_file_name !=None:
+            directory= current_file_name
+            filter = '.'+directory.split('.')[-1]
 
         headers = tableWidget.model().headers
 
@@ -207,6 +210,9 @@ def spreadsheet(screen_width,screen_height):
 
         elif '.h5'in filter:
             data.to_hdf(directory,key='0')
+
+        else :
+            print('file type not supported yet')
         saved_file = True
 
     def exportJoblib(dtype='np'): # export numpy array by joblib
@@ -439,11 +445,18 @@ def spreadsheet(screen_width,screen_height):
 
     #bar.setStyleSheet("background-color: white;")
     file = bar.addMenu("&File")
-    file.addAction('&Open...').triggered.connect(pick_sys_file)
-    file.addAction("Save As").triggered.connect(lambda : saveFile(saveAs=True))
+
+    menuOpen = file.addAction('&Open...')
+    menuOpen.triggered.connect(pick_sys_file)
+    menuOpen.setShortcut(QKeySequence("Ctrl+O"))
+    
     menuSave = file.addAction("Save")
     menuSave.triggered.connect(saveFile)
-    menuSave.setShortcut("Ctrl+s")
+    menuSave.setShortcut(QKeySequence("Ctrl+S"))
+
+    menuSaveAs = file.addAction("Save As")
+    menuSaveAs.triggered.connect(lambda : saveFile(saveAs=True))
+    menuSaveAs.setShortcut(QKeySequence("Ctrl+Shift+S"))
 
     menuImport = file.addMenu('&Import')
     menuImport.addAction('numpy object(joblib)').triggered.connect(importJoblib)
@@ -512,6 +525,7 @@ def spreadsheet(screen_width,screen_height):
 
 if __name__ == '__main__':
     saved_file = True
+    current_file_name = None
     def closeEventHandler(event):
         if saved_file == True:
             event.accept()
@@ -519,8 +533,7 @@ if __name__ == '__main__':
             m = QMessageBox()
             m.setWindowTitle('file not save')
             ret = m.question(mainWidget,'', "Exit without saving?", m.Yes | m.No,m.No)
-            
-            m.exec_()
+
             if ret == m.Yes:
                 event.accept()
             else:
