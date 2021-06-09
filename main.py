@@ -13,6 +13,7 @@
 """
 
 import gc, sys, joblib
+from os import close
 from typing import Any
 
 from PySide2.QtWidgets import *
@@ -342,36 +343,37 @@ def spreadsheet(screen_width,screen_height):
         layout.deleteLater()
 
     def analyze():
-        box = QDialog()
-        box.setWindowTitle('Analyze data')
-        layout = QFormLayout()
-        graphOption = QComboBox()
-        graphOption.addItems(['matplotlib','pyqtgraph'])
-        layout.addRow(QLabel('Library: '),graphOption)
-        box.setLayout(layout)
-        def matplot(data):
-            box = QDialog()
-            layout = QVBoxLayout()
-            box.setLayout(layout)
-            try:
-                from matplotlib.figure import Figure
-                from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-                from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
-            except Exception as e:  # it is mostly due to pillow
+        global plt_setting
+        try:
+            from matplotlib import pyplot as plt
+        except Exception as e:  # it is mostly due to pillow
                 from sys import executable
                 from subprocess import check_call
                 check_call([executable, "-m", "pip", "install", '-U', 'pillow'])
                 i = QMessageBox()  # upgrade pillow may resolve the problem
                 i.setText(e + '\nnow upgrading pillow')
                 i.exec_()
-            figure = Figure()
-            canvas = FigureCanvasQTAgg(figure)
-            toolbar = NavigationToolbar2QT(canvas, parent=canvas)
-            layout.addWidget(toolbar)
-            layout.addWidget(canvas)
-            box.exec_()
+                from matplotlib import pyplot as plt
+        plt.plot([4,6,2,8,99,22,73,68])
+        box = QDialog()
+        box.setWindowTitle('Analyze data')
+        layout = QFormLayout()
+        graphOption = QComboBox()
+        graphOption.addItems(['matplotlib']) # pyqtgraph for data streaming, not piority, to do
 
+        layout.addRow(QLabel('Library: '),graphOption)
+
+        plotBt = QPushButton('Plot')
+
+        # plt.show() automatically creates a new window through qt
+        plotBt.clicked.connect(lambda :plt.show()| box.close() ) 
+
+        layout.addWidget(plotBt)
+        
+        box.setLayout(layout)
         box.exec_()
+
+
 
     def webview(site):
         import webview
@@ -608,6 +610,7 @@ if __name__ == '__main__':
 
     saved_file = True #state if the file is modified, notice user to save file
     current_file_name = None #current file name is the file user opened using open file function
+    plt_setting = {'set':False}
 
     def closeEventHandler(event): # this function is called when user tries to close app, line 559
 
