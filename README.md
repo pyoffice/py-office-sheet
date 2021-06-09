@@ -10,6 +10,8 @@ in progress...
    import joblib
    pandas_data_frame = joblin.load("yourfile.pdobj")
 ```
+
+- alternative format: numpy ndarray obj(.npobj) for maximum efficiency
 - support interactive python command
 - support python scripting
 
