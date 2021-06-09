@@ -65,6 +65,8 @@ def spreadsheet(screen_width,screen_height):
             opencsv(file_name)
         elif 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in type:
             openexel(file_name)
+        elif '.pdobj' in file_name or '.npobj' in file_name:
+            importJoblib(pick=False,filename=file_name,filter=filter)
         elif type[0] == None:
             return None
         else:
@@ -98,17 +100,41 @@ def spreadsheet(screen_width,screen_height):
         if len(sheets)>1:
             pass
         pandas_data = data
-        data = np.array(data[sheets[0]])
+
+        num= [0]
+        if len(sheets) >1:
+
+            dialog = QDialog()
+            dlayout = QVBoxLayout()
+            dlayout.addWidget(QLabel(f'there is {len(sheets)} sheets\nonly one sheet can be imported'))
+            box = QComboBox()
+            box.addItems([f'sheet{i}: {sheets[i]}' for i in range(len(sheets))])
+            def change(event,close=False):
+                num[0] = event
+                if close:
+                    dialog.close()
+            box.currentIndexChanged.connect(change)
+            dlayout.addWidget(box)
+            click = QPushButton('OK')
+            click.clicked.connect(lambda:change(box.currentIndex(),True))
+            dlayout.addWidget(click)
+            dialog.setLayout(dlayout)
+            dialog.setWindowTitle('select sheet')
+            dialog.exec_()
+            dialog.deleteLater()
+
+        data = np.array(data[sheets[num[0]]])
         tableWidget.setModel(MyTableModel(data))
     
-    def importJoblib():
-        filter = 'Python Object(*.npobj *.pdobj)'
-        file_name, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', 'c://', filter=filter)
-        if '.npobj' in file_name:
-            data = joblib.load(file_name)
+    def importJoblib(pick=True,filename=None,filter=None):
+        if pick:
+            filter = 'Python Object(*.npobj *.pdobj)'
+            filename, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', 'c://', filter=filter)
+        if '.npobj' in filename:
+            data = joblib.load(filename)
             header = None
-        if '.pdobj' in file_name:
-            dataframe = joblib.load(file_name)
+        elif '.pdobj' in filename:
+            dataframe = joblib.load(filename)
             header = list(dataframe.keys())
             data = np.array(dataframe)
         
