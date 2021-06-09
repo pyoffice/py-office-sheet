@@ -558,6 +558,10 @@ def spreadsheet(screen_width,screen_height):
     viewStyle.addAction('Fusion')
     viewStyle.addAction('Windows')
 
+    #viewTheme = view.addMenu('Theme')
+    #viewTheme.addAction('Dark').triggered.connect(lambda : app.setStyleSheet(open('pic/dark.qss').read()))
+    #viewTheme.addAction('Lite').triggered.connect(lambda : app.setStyleSheet(open('pic/lite.qss').read()))
+
     tools = bar.addMenu('Tool')
 
     # show website https://www.desmos.com/calculator using package webview, func at line 335
