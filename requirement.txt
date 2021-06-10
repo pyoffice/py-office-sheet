@@ -1,0 +1,6 @@
+joblib
+PySide2
+pandas
+numpy
+webview
+matplotlib
