@@ -16,6 +16,7 @@
 #include <cstdlib>
 
 int main() {
-   std::system("python3.9 main.py");
-   return 0;
+    std::system("python3.9 main.py");
+
+    return 0;
 }
