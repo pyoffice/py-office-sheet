@@ -11,6 +11,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+#################################################################
+##      ___  ___       ___   _   __   _      ___     __    __  ##
+##     /   |/   |     /   | | | |  \ | |    |    \  \  \  /  / ##
+##    / /|   /| |    / /| | | | |   \| |    |     |  \  \/  /  ##
+##   / / |__/ | |   / / | | | | | |\   |    |  __/    \    /   ##
+##  / /       | |  / /  | | | | | | \  |    | |       /   /    ##
+## /_/        |_| /_/   |_| |_| |_|  \_| ⬤ |_|      /__ /     ##
+##                                                             ##
+#################################################################
+
+#                               _     _               _   
+#                              | |   | |             | |  
+#  ___ _ __  _ __ ___  __ _  __| |___| |__   ___  ___| |_ 
+# / __| '_ \| '__/ _ \/ _` |/ _` / __| '_ \ / _ \/ _ \ __|
+# \__ \ |_) | | |  __/ (_| | (_| \__ \ | | |  __/  __/ |_ 
+# |___/ .__/|_|  \___|\__,_|\__,_|___/_| |_|\___|\___|\__|
+#     | |                                                 
+#     |_|                                                 
+
 
 import gc, sys, joblib
 from os import close
@@ -29,37 +48,44 @@ import spreadsheet_command
 
 def spreadsheet(screen_width,screen_height):
     global saved_file
+
+############################## QAbstractTableModel #################################
+
     class MyTableModel(QAbstractTableModel): # numpy array model
-        # when tableView is rendered, data of each cell would be called through self.data
+        # when tableView is rendered, data of each cell would be called through self.data()
         # this method avoid creating widgets for each cell e.g. QtableWiget
         # by storing data in numpy array, fast processing of data could be performed
+        # numpy opperation is also supported. 
+
         def __init__(self, array, headers= None,parent=None):
             super().__init__(parent)
+
             self.array = array # call current array later through tableWidget.model().array
             self.headers = headers
+
             self.di=dict(zip([str((ord(c)%32)-1) for c in ascii_uppercase],ascii_uppercase))
-            if '<U' in str(array.dtype) :
+
+            if '<U' in str(array.dtype) : #unicode
                 self.numeric = False
             else:
                 self.numeric = True
 
         def formatNumericHeader(self,section):
-            if '10' in section:
-                pass
+
             section = [i for i in section]
             a =''
             for i in section:
                 a += self.di[i]
             return a
 
-        def headerData(self, section: int, orientation: Qt.Orientation, role: int):
+        def headerData(self, section: int, orientation: Qt.Orientation, role: int): # fetch the header to GUI
             if role == Qt.DisplayRole:
                 if orientation == Qt.Horizontal:
                     if self.headers != None:
                         try:
-                            return self.headers[section]  # column
+                            return self.headers[section]  # column headers maybe out of range
                         except :
-                            return self.formatNumericHeader(str(section))
+                            return self.formatNumericHeader(str(section)) # return number instead if out of range
                     else:
                         return self.formatNumericHeader(str(section)) # column
                 else:
@@ -71,38 +97,48 @@ def spreadsheet(screen_width,screen_height):
         def rowCount(self, parent=None):
             return len(self.array)
 
-        def data(self, index: QModelIndex, role: int): # value called on render
+        def data(self, index: QModelIndex, role: int): # fetch data to GUI
+
             if role == Qt.DisplayRole or role == Qt.EditRole:
                 row = index.row()
                 col = index.column()
                 return str(self.array[row][col]) # return value of cell
 
         def setData(self, index, value, role): # set data would be called everytime user edit cell
-            global saved_file
-            if role == Qt.EditRole:
+            global saved_file # if user modify the array, the array is modified
+
+            if role == Qt.EditRole: # check if func called correctly
                 if value:
-                    if value[0] == '=':
+
+                    if value[0] == '=': # '=' indicates to perform a function
                         return True
-                    saved_file = False
+
+                    saved_file = False # indicate file modifyed
+
                     if value.isnumeric() and self.numeric:
                         if 'float' in str(self.array.dtype):
                             value = float(value)
                         elif 'int' in str(self.array.dtype):
                             value = int(value)
+
                     self.array[index.row()][index.column()] = value # asign new data to array
-                    tableWidget.update()
+                    tableWidget.update() # update GUI
                     return True
                 else:
-                    return False
+                    return False # vlue not provided mal function call
 
-        def flags(self, index):
+        def flags(self, index): # indicate the model's flags
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
 
-#####################r read stuff #########################################
+#########################################################################
+############################## read stuff ###############################
+#########################################################################
 
     def pick_sys_file(filter="All files (*)"):
         global current_file_name, saved_file
+
         if saved_file == False:
+
             m = QMessageBox()
             m.setWindowTitle('file not save')
             ret = m.question(mainWidget,'', "open new file without saving?", m.Yes | m.No,m.No)
@@ -111,21 +147,27 @@ def spreadsheet(screen_width,screen_height):
                 return None
 
         from mimetypes import guess_type
+
         if filter == False:
             filter = "All files (*)"
+
         file_name, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', 'c://', filter=filter)
         type = guess_type(file_name)
+
         print(type)
+
         if 'text/csv' in type:
             opencsv(file_name)
         elif 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in type:
             openexel(file_name)
+
         elif '.pdobj' in file_name or '.npobj' in file_name:
             importJoblib(pick=False,filename=file_name,filter=filter)
+
         else:
             alertbox('<p>file type not supported yet\r\n</p><p>request feature on:\n</p><a href="https://github.com/YC-Lammy/np_spreadsheet/discussions">github.com/YC-Lammy/np_spreadsheet/discussions</a>',)
-
             return None
+
         column = tableWidget.model().columnCount()
         columnCount.setRange(column, column+10000)
         columnCount.setValue(column)
@@ -202,7 +244,10 @@ def spreadsheet(screen_width,screen_height):
 
         pandas_data = pd.DataFrame(tableWidget.model().array,columns=headers)
 
-#################### save stuff #########################
+#####################################################################
+############################# save stuff ############################
+#####################################################################
+
     def saveFile(directory=None,saveAs = False):
         global saved_file
         filter = "Pandas Object(*.pdobj);;Numpy Object(*.npobj);;CSV(*.csv);;JSON(*.json);;HTML(*.html);;Excel(*.xlsx);;PDF( *.pdf)"
@@ -278,8 +323,9 @@ def spreadsheet(screen_width,screen_height):
             joblib.dump(data,filename,9)
 
         
-
-################# local functions ########################
+#####################################################################################
+################################# local functions ###################################
+#####################################################################################
 
     def alertbox(err,arg=False): # a function to alert user when error occourse
         alert = QMessageBox()
@@ -327,6 +373,7 @@ def spreadsheet(screen_width,screen_height):
             commandBar.insert('"')
             commandBar.cursorBackward(False, 1)
 
+    ################ manage Functions #######################
 
     def manageFunction():
         manage_function_box = QDialog()
@@ -354,6 +401,7 @@ def spreadsheet(screen_width,screen_height):
         manage_function_box.deleteLater()
         layout.deleteLater()
 
+    ##################### analyze ############################
 
     def analyze(): # a panal to select matplotlib options and call matplotlib
         try:
@@ -471,19 +519,23 @@ def spreadsheet(screen_width,screen_height):
         box.deleteLater()
 
 
-
+    ######################## webview ##################################
     def webview(site):
         import webview
 
-        w = webview.WebView(width=int(screen_width/2), height=int(screen_height/2), title=site, url="https://www.desmos.com/calculator", resizable=True, debug=False)
+        if site == 'desmos':
+            w = webview.WebView(width=int(screen_width/2), height=int(screen_height/2), title=site, url="https://www.desmos.com/calculator", resizable=True, debug=False)
+        elif site == 'desmos calc':
+            w = webview.WebView(width=int(screen_width/2), height=int(screen_height/2), title=site, url="https://www.desmos.com/scientific", resizable=True, debug=False)
         w.run()
 
+    ######################## manage Pip #####################################
     def managePip():
         pass
 
 
 #################################################
-    data = np.array([['']*60]*60,dtype='<U30')
+    data = np.array([['']*60]*60,dtype='object')
     model = MyTableModel(data)
     table_tab_box = QVBoxLayout()
     tableWidget = QTableView()
@@ -501,7 +553,7 @@ def spreadsheet(screen_width,screen_height):
     menuWidget.setMinimumHeight(screen_height /8)
 
 ################## command layout ##########################
-    menuLayout_command = QVBoxLayout()
+    menuLayout_command = QFormLayout()
     commandBar = QLineEdit()
     commandBar.keyReleaseEvent = commandHandler
     commandBar.setMaximumWidth(int(screen_width/1.05))
@@ -511,7 +563,7 @@ def spreadsheet(screen_width,screen_height):
     functionCompleter.setCaseSensitivity(Qt.CaseInsensitive)
     commandBar.setCompleter(functionCompleter)
     printOutLabel = QLabel()
-    menuLayout_command.addWidget(printOutLabel)
+    menuLayout_command.addRow(QLabel('>>>'),printOutLabel)
     menuLayout_command.addWidget(commandBar)
 
     commandWidget = QWidget()
@@ -535,7 +587,7 @@ def spreadsheet(screen_width,screen_height):
     fontSizeCB.addItems([str(i) for i in range(6,24)])
 
     dtypeLabel = QLabel('dtype:')
-    dtypeLabel2 = QLabel('<U30')
+    dtypeLabel2 = QLabel('object')
     dtypeCB = QComboBox()
     dtypeCB.addItems(['float32','float64','int','complex','bytes','str'])
 
@@ -663,22 +715,22 @@ def spreadsheet(screen_width,screen_height):
     viewTheme.addAction('Dark').triggered.connect(lambda : mainWidget.setStyleSheet('background-color:#373737; color:white;'))
     viewTheme.addAction('Lite').triggered.connect(lambda : mainWidget.setStyleSheet('background-color:white; color:black;'))
 
-    tools = bar.addMenu('Tool')
 
-    # show website https://www.desmos.com/calculator using package webview, func at line 335
-    tools.addAction('desmos').triggered.connect(lambda :webview('desmos'))
+    
 
-    # user interface to manage moduler functions, allow custom functions, func at line 284
-    bar.addAction('Functions').triggered.connect(manageFunction)
-
-    # analyze data using matplotlib, func at line 310
-    bar.addAction('Analyze').triggered.connect(analyze)
 
     # manage pip packages, func at line 348
-    bar.addAction('library')
+    menuLibrary = bar.addMenu('library')
+
+    # user interface to manage moduler functions, allow custom functions, func at line 284
+    menuLibrary.addAction('Functions').triggered.connect(manageFunction)
+    menuLibrary.addAction('Pip packages').triggered.connect(managePip)
 
     # call function from imported module, state interactive mode, func at line 251
     bar.addAction('console').triggered.connect(lambda :spreadsheetCommand(interactive=True))
+
+    # analyze data using matplotlib, func at line 310
+    bar.addAction('Analyze').triggered.connect(analyze)
 
     def changeBarLayout(button): # this switches between the home and command menu
         if button == 'home':
@@ -693,6 +745,12 @@ def spreadsheet(screen_width,screen_height):
             homeWidget.hide()
             menuLayout.replaceWidget(homeWidget,commandWidget)
             commandWidget.show()
+
+    tools = bar.addMenu('Tool')
+
+    # show website https://www.desmos.com/calculator using package webview, func at line 335
+    tools.addAction('desmos').triggered.connect(lambda :webview('desmos'))
+    tools.addAction('desmos calc').triggered.connect(lambda: webview('desmos calc'))
 
     homeAction = bar.addAction('Home')
     homeAction.triggered.connect(lambda :changeBarLayout('home')) # hardcode the selection

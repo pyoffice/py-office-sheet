@@ -73,6 +73,7 @@ def main(commandBar, printOutLabel, tableWidget,scripting = False, interact=Fals
         print(d)
         return d
     
+    dtype = getDtype
     commands = []
 
 
