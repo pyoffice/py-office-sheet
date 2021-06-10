@@ -101,7 +101,7 @@ def spreadsheet(screen_width,screen_height):
 #####################r read stuff #########################################
 
     def pick_sys_file(filter="All files (*)"):
-        global current_file_name
+        global current_file_name, saved_file
         if saved_file == False:
             m = QMessageBox()
             m.setWindowTitle('file not save')
@@ -122,12 +122,9 @@ def spreadsheet(screen_width,screen_height):
             openexel(file_name)
         elif '.pdobj' in file_name or '.npobj' in file_name:
             importJoblib(pick=False,filename=file_name,filter=filter)
-        elif type[0] == None:
-            return None
         else:
-            m = QMessageBox()
-            m.setText('File type not support\n'+str(type[0]))
-            m.exec_()
+            alertbox('<p>file type not supported yet\r\n</p><p>request feature on:\n</p><a href="https://github.com/YC-Lammy/np_spreadsheet/discussions">github.com/YC-Lammy/np_spreadsheet/discussions</a>',)
+
             return None
         column = tableWidget.model().columnCount()
         columnCount.setRange(column, column+10000)
@@ -136,8 +133,10 @@ def spreadsheet(screen_width,screen_height):
         rowCount.setRange(row, row +10000)
         rowCount.setValue(row)
 
-        menuSave.setObjectName(file_name)
+        dtypeLabel2.setText(tableWidget.model().array.dtype.name)
+
         current_file_name = file_name
+        saved_file = True
         return file_name
 
     
@@ -260,14 +259,18 @@ def spreadsheet(screen_width,screen_height):
 
         else :
             print('file type not supported yet')
+            alertbox('file type not supported yet\nrequest feature on:\nhttps://github.com/YC-Lammy/np_spreadsheet/issues')
         saved_file = True
 
     def exportJoblib(dtype='np'): # export numpy array by joblib
+
         filename, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File', 'c://')
+
         if dtype=='np':
             filename += '.npobj'
             array = tableWidget.model().array
             joblib.dump(array,filename,9)
+
         elif dtype == 'pd':
             filename +='.pdobj'
             headers = tableWidget.model().headers
@@ -277,13 +280,17 @@ def spreadsheet(screen_width,screen_height):
         
 
 ################# local functions ########################
-    def alertbox(err):
+
+    def alertbox(err,arg=False): # a function to alert user when error occourse
         alert = QMessageBox()
         alert.setWindowTitle('ERROR')
         alert.setWindowIcon(QIcon('pic/icon/warning.png'))
         alert.setText(str(err))
-        alert.setAttribute(Qt.WA_DeleteOnClose)
+        alert.setAttribute(Qt.WA_DeleteOnClose) # prevent memory leak
+        alert.setTextInteractionFlags(Qt.TextBrowserInteraction)
         alert.exec()
+        if arg:
+            exec(arg)
         alert.deleteLater()
 
     def changeEncodeMethod(a):
@@ -294,12 +301,12 @@ def spreadsheet(screen_width,screen_height):
             encode.setObjectName(i.text())
 
 
-    def spreadsheetCommand(interactive=False,scripting = False):
+    def spreadsheetCommand(interactive=False,scripting = False): # call function from spreadsheet command.py
         global saved_file
         spreadsheet_command.main(commandBar,printOutLabel,tableWidget,scripting=scripting,interact=interactive,screen_width=screen_width,screen_height=screen_height)
         saved_file = False
 
-    def commandHandler(event):
+    def commandHandler(event): # handles the keyboard input of the command QLineEdit
         text = event.text()
         if text == '[':
             commandBar.insert(']')
@@ -347,35 +354,40 @@ def spreadsheet(screen_width,screen_height):
         manage_function_box.deleteLater()
         layout.deleteLater()
 
-    def analyze():
+
+    def analyze(): # a panal to select matplotlib options and call matplotlib
         try:
             from matplotlib import pyplot as plt
-        except Exception as e:  # it is mostly due to pillow
+
+        except Exception as e:  # it is mostly due to pillow, this may happen on linux
                 from sys import executable
                 from subprocess import check_call
+
+                # upgrade pillow may resolve the problem
                 check_call([executable, "-m", "pip", "install", '-U', 'pillow'])
-                i = QMessageBox()  # upgrade pillow may resolve the problem
+
+                i = QMessageBox()  
                 i.setText(e + '\nnow upgrading pillow')
                 i.exec_()
-                from matplotlib import pyplot as plt
+
+                from matplotlib import pyplot as plt # reimport after upgrade
 
         def setting(key,value):
-            plt_setting[key] = value
+            plt_setting[key] = value # sets the dictionary
 
-        def plotHandler():
+        def plotHandler(): # call when user click the "plot" button
             try:
                 x = xDataEdit.text()
                 y = yDataEdit.text()
-                for i in (x,y):
-                    pass
+
+                plt.show()
+                box.close()
 
             except Exception as e:
                 print(e)
                 alertbox(e)
-                return
 
-            plt.show()
-            box.close()
+           
 
         setting('set',True)
 
@@ -396,7 +408,12 @@ def spreadsheet(screen_width,screen_height):
         graphOption.addItems(['matplotlib']) # pyqtgraph for data streaming, not piority, to do
 
         xDataEdit = QLineEdit()
+        xDataEdit.textChanged.connect(lambda x: setting('xdata',xDataEdit.text()))
         yDataEdit = QLineEdit()
+        yDataEdit.textChanged.connect(lambda x: setting('ydata',yDataEdit.text()))
+
+        titleEdit = QLineEdit()
+        titleEdit.textChanged.connect(lambda x: plt.title(titleEdit.text()) | setting('title',titleEdit.text()))
 
         xLabelEdit = QLineEdit()
         xLabelEdit.textChanged.connect(lambda x: plt.xlabel(xLabelEdit.text()) | setting('xlabel',xLabelEdit.text()))
@@ -424,6 +441,7 @@ def spreadsheet(screen_width,screen_height):
         layout.addRow(QLabel('xData: '),xDataEdit)
         layout.addRow(QLabel('yData: '),yDataEdit)
         layout.addItem(QSpacerItem(0,4))
+        layout.addRow(QLabel('title'), titleEdit)
         layout.addRow(QLabel('xlabel: '),xLabelEdit)
         layout.addRow(QLabel('ylabel: '),yLabelEdit)
         layout.addWidget(advenceBt)
@@ -436,10 +454,17 @@ def spreadsheet(screen_width,screen_height):
         box.setLayout(mainlayout)
 
         if plt_setting['set']: # set all values user choosed
+
             if  'xlabel' in plt_setting:
                 xLabelEdit.setText(plt_setting['xlabel'])
             if  'ylabel' in plt_setting:
                 yLabelEdit.setText(plt_setting['ylabel'])
+            if  'xdata' in plt_setting:
+                xDataEdit.setText(plt_setting['xdata'])
+            if  'ydata' in plt_setting:
+                yDataEdit.setText(plt_setting['ydata'])
+            if  'title' in plt_setting:
+                titleEdit.setText(plt_setting['title'])
 
         box.setAttribute(Qt.WA_DeleteOnClose)
         box.exec_()
