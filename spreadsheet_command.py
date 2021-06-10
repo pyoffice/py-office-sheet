@@ -109,7 +109,6 @@ def main(commandBar, printOutLabel, tableWidget,scripting = False, interact=Fals
     elif scripting:
         pass
     elif interact:
-        import console
         import threading
         from PySide2.QtWidgets import QDialog,QLabel,QWidget,QScrollArea,QVBoxLayout,QFormLayout,QLineEdit
         from PySide2.QtGui import Qt
