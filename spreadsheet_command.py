@@ -112,8 +112,7 @@ def main(commandBar, printOutLabel, tableWidget,scripting = False, interact=Fals
         import threading
         from PySide2.QtWidgets import QDialog,QLabel,QWidget,QScrollArea,QVBoxLayout,QFormLayout,QLineEdit
         from PySide2.QtGui import Qt
-        from PySide2.QtCore import Qt, QEvent
-        import PySide2.QtGui as QtGui
+        from PySide2.QtCore import Qt
         varFuncs = locals()
         def interact():
             
