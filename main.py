@@ -25,6 +25,8 @@ import numpy as np
 from string import ascii_uppercase
 from webbrowser import open as webbrowser_open
 
+import spreadsheet_command
+
 def spreadsheet(screen_width,screen_height):
     global saved_file
     class MyTableModel(QAbstractTableModel): # numpy array model
@@ -280,6 +282,7 @@ def spreadsheet(screen_width,screen_height):
         alert.setWindowTitle('ERROR')
         alert.setWindowIcon(QIcon('pic/icon/warning.png'))
         alert.setText(str(err))
+        alert.setAttribute(Qt.WA_DeleteOnClose)
         alert.exec()
         alert.deleteLater()
 
@@ -292,8 +295,9 @@ def spreadsheet(screen_width,screen_height):
 
 
     def spreadsheetCommand(interactive=False,scripting = False):
-        import spreadsheet_command
-        spreadsheet_command.main(commandBar,printOutLabel,tableWidget,MyTableModel,scripting=scripting,interact=interactive,screen_width=screen_width,screen_height=screen_height)
+        global saved_file
+        spreadsheet_command.main(commandBar,printOutLabel,tableWidget,scripting=scripting,interact=interactive,screen_width=screen_width,screen_height=screen_height)
+        saved_file = False
 
     def commandHandler(event):
         text = event.text()
@@ -358,6 +362,21 @@ def spreadsheet(screen_width,screen_height):
         def setting(key,value):
             plt_setting[key] = value
 
+        def plotHandler():
+            try:
+                x = xDataEdit.text()
+                y = yDataEdit.text()
+                for i in (x,y):
+                    pass
+
+            except Exception as e:
+                print(e)
+                alertbox(e)
+                return
+
+            plt.show()
+            box.close()
+
         setting('set',True)
 
         scroll = QScrollArea()
@@ -376,11 +395,13 @@ def spreadsheet(screen_width,screen_height):
         graphOption = QComboBox()
         graphOption.addItems(['matplotlib']) # pyqtgraph for data streaming, not piority, to do
 
+        xDataEdit = QLineEdit()
+        yDataEdit = QLineEdit()
 
         xLabelEdit = QLineEdit()
-        xLabelEdit.textChanged.connect(lambda x: plt.xlabel(xLabelEdit.text())| setting('xlabel',xLabelEdit.text()))
+        xLabelEdit.textChanged.connect(lambda x: plt.xlabel(xLabelEdit.text()) | setting('xlabel',xLabelEdit.text()))
         yLabelEdit = QLineEdit()
-        yLabelEdit.textChanged.connect(lambda x: plt.ylabel(yLabelEdit.text())| setting('ylabel',yLabelEdit.text()))
+        yLabelEdit.textChanged.connect(lambda x: plt.ylabel(yLabelEdit.text()) | setting('ylabel',yLabelEdit.text()))
 
         
         advenceBt = QPushButton('Advence')
@@ -396,10 +417,13 @@ def spreadsheet(screen_width,screen_height):
         plotBt = QPushButton('Plot')
 
         # plt.show() automatically creates a new window through qt
-        plotBt.clicked.connect(lambda :plt.show()| box.close() ) 
+        plotBt.clicked.connect(plotHandler) 
 
-
+        layout.setVerticalSpacing(20)
         layout.addRow(QLabel('Library: '),graphOption)
+        layout.addRow(QLabel('xData: '),xDataEdit)
+        layout.addRow(QLabel('yData: '),yDataEdit)
+        layout.addItem(QSpacerItem(0,4))
         layout.addRow(QLabel('xlabel: '),xLabelEdit)
         layout.addRow(QLabel('ylabel: '),yLabelEdit)
         layout.addWidget(advenceBt)
@@ -416,6 +440,8 @@ def spreadsheet(screen_width,screen_height):
                 xLabelEdit.setText(plt_setting['xlabel'])
             if  'ylabel' in plt_setting:
                 yLabelEdit.setText(plt_setting['ylabel'])
+
+        box.setAttribute(Qt.WA_DeleteOnClose)
         box.exec_()
         box.deleteLater()
 
@@ -439,6 +465,8 @@ def spreadsheet(screen_width,screen_height):
     tableWidget.setModel(model)
     tableWidget.horizontalHeader().stretchLastSection()
     tableWidget.setStyleSheet('background-color:white;color:black;')
+
+    spreadsheet_command.init(tableWidget)
 
 ############################ Menu section ######################################3
 
@@ -674,6 +702,7 @@ if __name__ == '__main__':
                 event.accept() # if user choose yes, exit without saving
             else:
                 event.ignore() # when user choose no, stop exit event
+
 
     app = QApplication(['-style fusion']+sys.argv)
 
