@@ -344,7 +344,6 @@ def spreadsheet(screen_width,screen_height):
         layout.deleteLater()
 
     def analyze():
-        global plt_setting
         try:
             from matplotlib import pyplot as plt
         except Exception as e:  # it is mostly due to pillow
@@ -355,17 +354,35 @@ def spreadsheet(screen_width,screen_height):
                 i.setText(e + '\nnow upgrading pillow')
                 i.exec_()
                 from matplotlib import pyplot as plt
-                
+
+        def setting(key,value):
+            plt_setting[key] = value
+
+        setting('set',True)
+
+        scroll = QScrollArea()
+        mainWidget = QWidget()
+
+        scroll.setWidget(mainWidget)
+        scroll.setWidgetResizable(True)
+
         plt.plot([4,6,2,8,99,22,73,68])
+        
         box = QDialog()
         box.setMinimumSize(screen_width/2,screen_height/2)
         box.setWindowTitle('Analyze data')
-        layout = QFormLayout()
+
+        layout = QFormLayout(mainWidget)
         graphOption = QComboBox()
         graphOption.addItems(['matplotlib']) # pyqtgraph for data streaming, not piority, to do
 
-        layout.addRow(QLabel('Library: '),graphOption)
 
+        xLabelEdit = QLineEdit()
+        xLabelEdit.textChanged.connect(lambda x: plt.xlabel(xLabelEdit.text())| setting('xlabel',xLabelEdit.text()))
+        yLabelEdit = QLineEdit()
+        yLabelEdit.textChanged.connect(lambda x: plt.ylabel(yLabelEdit.text())| setting('ylabel',yLabelEdit.text()))
+
+        
         advenceBt = QPushButton('Advence')
         advenceBt.setFlat(True)
         
@@ -373,6 +390,7 @@ def spreadsheet(screen_width,screen_height):
         advenceLayout.addRow(QLabel('hello'),QCheckBox())
         advenceWidget = QWidget()
         advenceWidget.setLayout(advenceLayout)
+        advenceWidget.hide()# default as hide
         advenceBt.clicked.connect(lambda: advenceWidget.show()if advenceWidget.isHidden() else advenceWidget.hide()) # if hidden,show. if shown,hide
 
         plotBt = QPushButton('Plot')
@@ -380,11 +398,26 @@ def spreadsheet(screen_width,screen_height):
         # plt.show() automatically creates a new window through qt
         plotBt.clicked.connect(lambda :plt.show()| box.close() ) 
 
+
+        layout.addRow(QLabel('Library: '),graphOption)
+        layout.addRow(QLabel('xlabel: '),xLabelEdit)
+        layout.addRow(QLabel('ylabel: '),yLabelEdit)
         layout.addWidget(advenceBt)
         layout.addWidget(advenceWidget)
         layout.addWidget(plotBt)
-        box.setLayout(layout)
+
+        mainlayout = QVBoxLayout()
+        mainlayout.addWidget(scroll)
+
+        box.setLayout(mainlayout)
+
+        if plt_setting['set']: # set all values user choosed
+            if  'xlabel' in plt_setting:
+                xLabelEdit.setText(plt_setting['xlabel'])
+            if  'ylabel' in plt_setting:
+                yLabelEdit.setText(plt_setting['ylabel'])
         box.exec_()
+        box.deleteLater()
 
 
 
@@ -573,9 +606,9 @@ def spreadsheet(screen_width,screen_height):
     viewStyle.addAction('Fusion')
     viewStyle.addAction('Windows')
 
-    #viewTheme = view.addMenu('Theme')
-    #viewTheme.addAction('Dark').triggered.connect(lambda : app.setStyleSheet(open('pic/dark.qss').read()))
-    #viewTheme.addAction('Lite').triggered.connect(lambda : app.setStyleSheet(open('pic/lite.qss').read()))
+    viewTheme = view.addMenu('Theme')
+    viewTheme.addAction('Dark').triggered.connect(lambda : mainWidget.setStyleSheet('background-color:#373737; color:white;'))
+    viewTheme.addAction('Lite').triggered.connect(lambda : mainWidget.setStyleSheet('background-color:white; color:black;'))
 
     tools = bar.addMenu('Tool')
 
