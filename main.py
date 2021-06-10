@@ -49,7 +49,9 @@ import spreadsheet_command
 def spreadsheet(screen_width,screen_height):
     global saved_file
 
-############################## QAbstractTableModel #################################
+########################################################################################################################################################
+############################## QAbstractTableModel #####################################################################################################
+########################################################################################################################################################
 
     class MyTableModel(QAbstractTableModel): # numpy array model
         # when tableView is rendered, data of each cell would be called through self.data()
@@ -130,9 +132,27 @@ def spreadsheet(screen_width,screen_height):
         def flags(self, index): # indicate the model's flags
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
 
-#########################################################################
-############################## read stuff ###############################
-#########################################################################
+############################################################################################################################################################
+############################## read stuff ##################################################################################################################
+############################################################################################################################################################
+#                                                                    dddddddd                                                                                                        
+#                                                                    d::::::d                               tttt                               ffffffffffffffff    ffffffffffffffff  
+#                                                                    d::::::d                            ttt:::t                              f::::::::::::::::f  f::::::::::::::::f 
+#                                                                    d::::::d                            t:::::t                             f::::::::::::::::::ff::::::::::::::::::f
+#                                                                    d:::::d                             t:::::t                             f::::::fffffff:::::ff::::::fffffff:::::f
+# rrrrr   rrrrrrrrr       eeeeeeeeeeee    aaaaaaaaaaaaa      ddddddddd:::::d          ssssssssss   ttttttt:::::ttttttt    uuuuuu    uuuuuu   f:::::f       fffffff:::::f       ffffff
+# r::::rrr:::::::::r    ee::::::::::::ee  a::::::::::::a   dd::::::::::::::d        ss::::::::::s  t:::::::::::::::::t    u::::u    u::::u   f:::::f             f:::::f             
+# r:::::::::::::::::r  e::::::eeeee:::::eeaaaaaaaaa:::::a d::::::::::::::::d      ss:::::::::::::s t:::::::::::::::::t    u::::u    u::::u  f:::::::ffffff      f:::::::ffffff       
+# rr::::::rrrrr::::::re::::::e     e:::::e         a::::ad:::::::ddddd:::::d      s::::::ssss:::::stttttt:::::::tttttt    u::::u    u::::u  f::::::::::::f      f::::::::::::f       
+#  r:::::r     r:::::re:::::::eeeee::::::e  aaaaaaa:::::ad::::::d    d:::::d       s:::::s  ssssss       t:::::t          u::::u    u::::u  f::::::::::::f      f::::::::::::f       
+#  r:::::r     rrrrrrre:::::::::::::::::e aa::::::::::::ad:::::d     d:::::d         s::::::s            t:::::t          u::::u    u::::u  f:::::::ffffff      f:::::::ffffff       
+#  r:::::r            e::::::eeeeeeeeeee a::::aaaa::::::ad:::::d     d:::::d            s::::::s         t:::::t          u::::u    u::::u   f:::::f             f:::::f             
+#  r:::::r            e:::::::e         a::::a    a:::::ad:::::d     d:::::d      ssssss   s:::::s       t:::::t    ttttttu:::::uuuu:::::u   f:::::f             f:::::f             
+#  r:::::r            e::::::::e        a::::a    a:::::ad::::::ddddd::::::dd     s:::::ssss::::::s      t::::::tttt:::::tu:::::::::::::::uuf:::::::f           f:::::::f            
+#  r:::::r             e::::::::eeeeeeeea:::::aaaa::::::a d:::::::::::::::::d     s::::::::::::::s       tt::::::::::::::t u:::::::::::::::uf:::::::f           f:::::::f            
+#  r:::::r              ee:::::::::::::e a::::::::::aa:::a d:::::::::ddd::::d      s:::::::::::ss          tt:::::::::::tt  uu::::::::uu:::uf:::::::f           f:::::::f            
+#  rrrrrrr                eeeeeeeeeeeeee  aaaaaaaaaa  aaaa  ddddddddd   ddddd       sssssssssss              ttttttttttt      uuuuuuuu  uuuufffffffff           fffffffff            
+                                                                                                                                                                           
 
     def pick_sys_file(filter="All files (*)"):
         global current_file_name, saved_file
@@ -244,9 +264,27 @@ def spreadsheet(screen_width,screen_height):
 
         pandas_data = pd.DataFrame(tableWidget.model().array,columns=headers)
 
-#####################################################################
-############################# save stuff ############################
-#####################################################################
+############################################################################################################################################################
+############################# save stuff ###################################################################################################################
+############################################################################################################################################################
+#                                                                                                                                                                                   
+#                                                                                                          tttt                               ffffffffffffffff    ffffffffffffffff  
+#                                                                                                       ttt:::t                              f::::::::::::::::f  f::::::::::::::::f 
+#                                                                                                       t:::::t                             f::::::::::::::::::ff::::::::::::::::::f
+#                                                                                                       t:::::t                             f::::::fffffff:::::ff::::::fffffff:::::f
+#     ssssssssss     aaaaaaaaaaaaavvvvvvv           vvvvvvv eeeeeeeeeeee             ssssssssss   ttttttt:::::ttttttt    uuuuuu    uuuuuu   f:::::f       fffffff:::::f       ffffff
+#   ss::::::::::s    a::::::::::::av:::::v         v:::::vee::::::::::::ee         ss::::::::::s  t:::::::::::::::::t    u::::u    u::::u   f:::::f             f:::::f             
+# ss:::::::::::::s   aaaaaaaaa:::::av:::::v       v:::::ve::::::eeeee:::::ee     ss:::::::::::::s t:::::::::::::::::t    u::::u    u::::u  f:::::::ffffff      f:::::::ffffff       
+# s::::::ssss:::::s           a::::a v:::::v     v:::::ve::::::e     e:::::e     s::::::ssss:::::stttttt:::::::tttttt    u::::u    u::::u  f::::::::::::f      f::::::::::::f       
+#  s:::::s  ssssss     aaaaaaa:::::a  v:::::v   v:::::v e:::::::eeeee::::::e      s:::::s  ssssss       t:::::t          u::::u    u::::u  f::::::::::::f      f::::::::::::f       
+#    s::::::s        aa::::::::::::a   v:::::v v:::::v  e:::::::::::::::::e         s::::::s            t:::::t          u::::u    u::::u  f:::::::ffffff      f:::::::ffffff       
+#       s::::::s    a::::aaaa::::::a    v:::::v:::::v   e::::::eeeeeeeeeee             s::::::s         t:::::t          u::::u    u::::u   f:::::f             f:::::f             
+# ssssss   s:::::s a::::a    a:::::a     v:::::::::v    e:::::::e                ssssss   s:::::s       t:::::t    ttttttu:::::uuuu:::::u   f:::::f             f:::::f             
+# s:::::ssss::::::sa::::a    a:::::a      v:::::::v     e::::::::e               s:::::ssss::::::s      t::::::tttt:::::tu:::::::::::::::uuf:::::::f           f:::::::f            
+# s::::::::::::::s a:::::aaaa::::::a       v:::::v       e::::::::eeeeeeee       s::::::::::::::s       tt::::::::::::::t u:::::::::::::::uf:::::::f           f:::::::f            
+#  s:::::::::::ss   a::::::::::aa:::a       v:::v         ee:::::::::::::e        s:::::::::::ss          tt:::::::::::tt  uu::::::::uu:::uf:::::::f           f:::::::f            
+#   sssssssssss      aaaaaaaaaa  aaaa        vvv            eeeeeeeeeeeeee         sssssssssss              ttttttttttt      uuuuuuuu  uuuufffffffff           fffffffff            
+                                                                                                                                                                       
 
     def saveFile(directory=None,saveAs = False):
         global saved_file
@@ -323,9 +361,27 @@ def spreadsheet(screen_width,screen_height):
             joblib.dump(data,filename,9)
 
         
-#####################################################################################
-################################# local functions ###################################
-#####################################################################################
+############################################################################################################################################################
+################################# operational functions ##########################################################################################################
+############################################################################################################################################################
+#                                                                                                                                                                
+#     ffffffffffffffff                                                                 tttt            iiii                                                      
+#    f::::::::::::::::f                                                             ttt:::t           i::::i                                                     
+#   f::::::::::::::::::f                                                            t:::::t            iiii                                                      
+#   f::::::fffffff:::::f                                                            t:::::t                                                                      
+#   f:::::f       ffffffuuuuuu    uuuuuunnnn  nnnnnnnn        ccccccccccccccccttttttt:::::ttttttt    iiiiiii    ooooooooooo   nnnn  nnnnnnnn        ssssssssss   
+#   f:::::f             u::::u    u::::un:::nn::::::::nn    cc:::::::::::::::ct:::::::::::::::::t    i:::::i  oo:::::::::::oo n:::nn::::::::nn    ss::::::::::s  
+#  f:::::::ffffff       u::::u    u::::un::::::::::::::nn  c:::::::::::::::::ct:::::::::::::::::t     i::::i o:::::::::::::::on::::::::::::::nn ss:::::::::::::s 
+#  f::::::::::::f       u::::u    u::::unn:::::::::::::::nc:::::::cccccc:::::ctttttt:::::::tttttt     i::::i o:::::ooooo:::::onn:::::::::::::::ns::::::ssss:::::s
+#  f::::::::::::f       u::::u    u::::u  n:::::nnnn:::::nc::::::c     ccccccc      t:::::t           i::::i o::::o     o::::o  n:::::nnnn:::::n s:::::s  ssssss 
+#  f:::::::ffffff       u::::u    u::::u  n::::n    n::::nc:::::c                   t:::::t           i::::i o::::o     o::::o  n::::n    n::::n   s::::::s      
+#   f:::::f             u::::u    u::::u  n::::n    n::::nc:::::c                   t:::::t           i::::i o::::o     o::::o  n::::n    n::::n      s::::::s   
+#   f:::::f             u:::::uuuu:::::u  n::::n    n::::nc::::::c     ccccccc      t:::::t    tttttt i::::i o::::o     o::::o  n::::n    n::::nssssss   s:::::s 
+#  f:::::::f            u:::::::::::::::uun::::n    n::::nc:::::::cccccc:::::c      t::::::tttt:::::ti::::::io:::::ooooo:::::o  n::::n    n::::ns:::::ssss::::::s
+#  f:::::::f             u:::::::::::::::un::::n    n::::n c:::::::::::::::::c      tt::::::::::::::ti::::::io:::::::::::::::o  n::::n    n::::ns::::::::::::::s 
+#  f:::::::f              uu::::::::uu:::un::::n    n::::n  cc:::::::::::::::c        tt:::::::::::tti::::::i oo:::::::::::oo   n::::n    n::::n s:::::::::::ss  
+#  fffffffff                uuuuuuuu  uuuunnnnnn    nnnnnn    cccccccccccccccc          ttttttttttt  iiiiiiii   ooooooooooo     nnnnnn    nnnnnn  sssssssssss    
+                                                                                                                                                               
 
     def alertbox(err,arg=False): # a function to alert user when error occourse
         alert = QMessageBox()
@@ -533,26 +589,52 @@ def spreadsheet(screen_width,screen_height):
     def managePip():
         pass
 
+##############################################################################################################################################
+############################ set up ##########################################################################################################
+##############################################################################################################################################
+#                                               tttt                                               
+#                                            ttt:::t                                               
+#                                            t:::::t                                               
+#                                            t:::::t                                               
+#     ssssssssss       eeeeeeeeeeee    ttttttt:::::ttttttt    uuuuuu    uuuuuu ppppp   ppppppppp   
+#   ss::::::::::s    ee::::::::::::ee  t:::::::::::::::::t    u::::u    u::::u p::::ppp:::::::::p  
+# ss:::::::::::::s  e::::::eeeee:::::eet:::::::::::::::::t    u::::u    u::::u p:::::::::::::::::p 
+# s::::::ssss:::::se::::::e     e:::::etttttt:::::::tttttt    u::::u    u::::u pp::::::ppppp::::::p
+#  s:::::s  ssssss e:::::::eeeee::::::e      t:::::t          u::::u    u::::u  p:::::p     p:::::p
+#    s::::::s      e:::::::::::::::::e       t:::::t          u::::u    u::::u  p:::::p     p:::::p
+#       s::::::s   e::::::eeeeeeeeeee        t:::::t          u::::u    u::::u  p:::::p     p:::::p
+# ssssss   s:::::s e:::::::e                 t:::::t    ttttttu:::::uuuu:::::u  p:::::p    p::::::p
+# s:::::ssss::::::se::::::::e                t::::::tttt:::::tu:::::::::::::::uup:::::ppppp:::::::p
+# s::::::::::::::s  e::::::::eeeeeeee        tt::::::::::::::t u:::::::::::::::up::::::::::::::::p 
+#  s:::::::::::ss    ee:::::::::::::e          tt:::::::::::tt  uu::::::::uu:::up::::::::::::::pp  
+#   sssssssssss        eeeeeeeeeeeeee            ttttttttttt      uuuuuuuu  uuuup::::::pppppppp    
+#                                                                               p:::::p            
+#                                                                               p:::::p            
+#                                                                              p:::::::p           
+#                                                                              p:::::::p           
+#                                                                              p:::::::p           
+#                                                                              ppppppppp  
 
-#################################################
-    data = np.array([['']*60]*60,dtype='object')
-    model = MyTableModel(data)
+
+    data = np.array([['']*60]*60,dtype='object')# empty array
+
     table_tab_box = QVBoxLayout()
     tableWidget = QTableView()
-    tableWidget.setModel(model)
+    tableWidget.setModel(MyTableModel(data))
     tableWidget.horizontalHeader().stretchLastSection()
     tableWidget.setStyleSheet('background-color:white;color:black;')
 
     spreadsheet_command.init(tableWidget)
 
-############################ Menu section ######################################3
+############################ Menu section #########################################################################################################
 
     menuWidget = QWidget()
     menuLayout = QVBoxLayout()
     menuWidget.setLayout(menuLayout)
     menuWidget.setMinimumHeight(screen_height /8)
 
-################## command layout ##########################
+################## command layout #################################################################################################################
+
     menuLayout_command = QFormLayout()
     commandBar = QLineEdit()
     commandBar.keyReleaseEvent = commandHandler
@@ -569,7 +651,8 @@ def spreadsheet(screen_width,screen_height):
     commandWidget = QWidget()
     commandWidget.setLayout(menuLayout_command)
 
-################### home layout ###############################
+################### home layout ###################################################################################################################
+
     menuLayout_home = QVBoxLayout()
     menuLayout_home.setAlignment(Qt.AlignTop)
 
@@ -746,6 +829,7 @@ def spreadsheet(screen_width,screen_height):
             menuLayout.replaceWidget(homeWidget,commandWidget)
             commandWidget.show()
 
+
     tools = bar.addMenu('Tool')
 
     # show website https://www.desmos.com/calculator using package webview, func at line 335
@@ -764,7 +848,24 @@ def spreadsheet(screen_width,screen_height):
 
     return table_tab_box # return the main layout
 
-########################### execute ################################
+
+# EEEEEEEEEEEEEEEEEEEEEE                                                                                  tttt                              
+# E::::::::::::::::::::E                                                                               ttt:::t                              
+# E::::::::::::::::::::E                                                                               t:::::t                              
+# EE::::::EEEEEEEEE::::E                                                                               t:::::t                              
+#   E:::::E       EEEEEExxxxxxx      xxxxxxx eeeeeeeeeeee        ccccccccccccccccuuuuuu    uuuuuuttttttt:::::ttttttt        eeeeeeeeeeee    
+#   E:::::E              x:::::x    x:::::xee::::::::::::ee    cc:::::::::::::::cu::::u    u::::ut:::::::::::::::::t      ee::::::::::::ee  
+#   E::::::EEEEEEEEEE     x:::::x  x:::::xe::::::eeeee:::::ee c:::::::::::::::::cu::::u    u::::ut:::::::::::::::::t     e::::::eeeee:::::ee
+#   E:::::::::::::::E      x:::::xx:::::xe::::::e     e:::::ec:::::::cccccc:::::cu::::u    u::::utttttt:::::::tttttt    e::::::e     e:::::e
+#   E:::::::::::::::E       x::::::::::x e:::::::eeeee::::::ec::::::c     cccccccu::::u    u::::u      t:::::t          e:::::::eeeee::::::e
+#   E::::::EEEEEEEEEE        x::::::::x  e:::::::::::::::::e c:::::c             u::::u    u::::u      t:::::t          e:::::::::::::::::e 
+#   E:::::E                  x::::::::x  e::::::eeeeeeeeeee  c:::::c             u::::u    u::::u      t:::::t          e::::::eeeeeeeeeee  
+#   E:::::E       EEEEEE    x::::::::::x e:::::::e           c::::::c     cccccccu:::::uuuu:::::u      t:::::t    tttttte:::::::e           
+# EE::::::EEEEEEEE:::::E   x:::::xx:::::xe::::::::e          c:::::::cccccc:::::cu:::::::::::::::uu    t::::::tttt:::::te::::::::e          
+# E::::::::::::::::::::E  x:::::x  x:::::xe::::::::eeeeeeee   c:::::::::::::::::c u:::::::::::::::u    tt::::::::::::::t e::::::::eeeeeeee  
+# E::::::::::::::::::::E x:::::x    x:::::xee:::::::::::::e    cc:::::::::::::::c  uu::::::::uu:::u      tt:::::::::::tt  ee:::::::::::::e  
+# EEEEEEEEEEEEEEEEEEEEEExxxxxxx      xxxxxxx eeeeeeeeeeeeee      cccccccccccccccc    uuuuuuuu  uuuu        ttttttttttt      eeeeeeeeeeeeee  
+                                                                                                                                          
 
 if __name__ == '__main__':
 
