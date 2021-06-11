@@ -1,5 +1,0 @@
-PySide2
-joblib
-matplotlib
-numpy
-pandas
