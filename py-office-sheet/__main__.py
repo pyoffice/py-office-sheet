@@ -44,7 +44,11 @@ import numpy as np
 from string import ascii_uppercase
 from webbrowser import open as webbrowser_open
 
-import spreadsheet_command
+try :
+    import spreadsheet_command
+except:
+
+    from pyOfficeSheet import spreadsheet_command
 
 def spreadsheet(screen_width,screen_height):
     global saved_file
@@ -402,6 +406,8 @@ def spreadsheet(screen_width,screen_height):
             i.setDisabled(True)
             encode.setObjectName(i.text())
 
+    def changeSettings(key,value):
+        settings[key] = value
 
     def spreadsheetCommand(interactive=False,scripting = False): # call function from spreadsheet command.py
         global saved_file
@@ -795,8 +801,9 @@ def spreadsheet(screen_width,screen_height):
     viewStyle.addAction('Windows')
 
     viewTheme = view.addMenu('Theme')
-    viewTheme.addAction('Dark').triggered.connect(lambda : mainWidget.setStyleSheet('background-color:#373737; color:white;'))
-    viewTheme.addAction('Lite').triggered.connect(lambda : mainWidget.setStyleSheet('background-color:white; color:black;'))
+    viewTheme.addAction('Dark').triggered.connect(lambda : mainWidget.setStyleSheet('background-color:#2f2f35; color:white;') | changeSettings('theme','dark'))
+    viewTheme.addAction('Lite').triggered.connect(lambda : mainWidget.setStyleSheet('background-color:white; color:black;') | changeSettings('theme','lite'))
+    viewTheme.addAction('System').triggered.connect(lambda: mainWidget.setStyleSheet('') | changeSettings('theme','system'))
 
 
     
@@ -845,6 +852,11 @@ def spreadsheet(screen_width,screen_height):
 
     menuhelp = bar.addAction('help').triggered.connect(lambda : webbrowser_open('https://github.com/YC-Lammy/np_spreadsheet/issues'))
 
+    from json import loads as json_loads
+    #with open('config.json','r') as f:
+        #json = f.read()
+    #json = json_loads(json)
+
 
     return table_tab_box # return the main layout
 
@@ -867,11 +879,14 @@ def spreadsheet(screen_width,screen_height):
 # EEEEEEEEEEEEEEEEEEEEEExxxxxxx      xxxxxxx eeeeeeeeeeeeee      cccccccccccccccc    uuuuuuuu  uuuu        ttttttttttt      eeeeeeeeeeeeee  
                                                                                                                                           
 
-if __name__ == '__main__':
+def main():
+    global plt_setting, saved_file, current_file_name, settings, mainWidget
 
     saved_file = True #state if the file is modified, notice user to save file
     current_file_name = None #current file name is the file user opened using open file function
     plt_setting = {'set':False}
+    settings = {}
+
 
     def closeEventHandler(event): # this function is called when user tries to close app, line 559
 
@@ -900,3 +915,6 @@ if __name__ == '__main__':
     app.exec_()
     gc.collect()
     sys.exit()
+
+if __name__ == '__main__':
+    main()
