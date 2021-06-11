@@ -19,7 +19,7 @@ setup(
     author_email="yclam508@protonmail.com",
     license="GPL",
     classifiers=[
-        "License :: GPL License",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.9",
     ],
