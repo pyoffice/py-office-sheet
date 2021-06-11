@@ -3,3 +3,4 @@ PySide2
 pandas
 numpy
 matplotlib
+webview>=0.1
