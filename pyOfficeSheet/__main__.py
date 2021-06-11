@@ -49,10 +49,11 @@ from json import loads as json_loads
 from json import dumps as json_dumps
 
 try :
-    import spreadsheet_command
+    import spreadsheet_command # direct import if call locally
 except:
 
     from pyOfficeSheet import spreadsheet_command
+
 
 def spreadsheet(screen_width,screen_height):
     global saved_file
@@ -72,11 +73,13 @@ def spreadsheet(screen_width,screen_height):
 
             self.array = array # call current array later through tableWidget.model().array
             self.headers = headers
-            self.stack = QUndoStack()
 
+            self.stack = QUndoStack() # support undo redo function
+
+            # create a dict {'A':'1', 'B':'2', 'C':'3' ...}
             self.di=dict(zip([str((ord(c)%32)-1) for c in ascii_uppercase],ascii_uppercase))
 
-            if '<U' in str(array.dtype) : #unicode
+            if '<U' in str(array.dtype) : # '<U' is unicode
                 self.numeric = False
             else:
                 self.numeric = True
@@ -140,10 +143,12 @@ def spreadsheet(screen_width,screen_height):
                 else:
                     return False # vlue not provided mal function call
 
-            def undo(self):
-                self.stack.undo()
-            def redo(self):
-                self.stack.redo()
+        def undo(self):
+            self.stack.undo()
+
+        def redo(self):
+            self.stack.redo()
+
         def flags(self, index): # indicate the model's flags
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable 
 
@@ -154,16 +159,18 @@ def spreadsheet(screen_width,screen_height):
             super().__init__(*args, **kwargs)
             self.index = index # save the cell location
             self.value = value # save the new value 
-            self.prev = model.list_data[index.row()][index.column()] # save the previous value
+            self.prev = model.array[index.row()][index.column()] # save the previous value
             self.model = model # a pointer to the model
 
         def undo(self):
             # set the specific cell to the previous value
-            self.model.list_data[self.index.row()][self.index.column()] = self.prev
+            self.model.array[self.index.row()][self.index.column()] = self.prev
+            tableWidget.update()
 
         def redo(self):
             # set the specific cell to the new value
-            self.model.list_data[self.index.row()][self.index.column()] = self.value
+            self.model.array[self.index.row()][self.index.column()] = self.value
+            tableWidget.update()
 
 ############################################################################################################################################################
 ############################## read stuff ##################################################################################################################
@@ -625,7 +632,6 @@ def spreadsheet(screen_width,screen_height):
         box.setWindowModality(Qt.WindowModal)
         box.setAttribute(Qt.WA_DeleteOnClose)
         box.exec_()
-        box.deleteLater()
 
 
     ######################## webview ##################################
@@ -823,9 +829,14 @@ def spreadsheet(screen_width,screen_height):
     menuExport.addAction('pandas object(joblib)').triggered.connect(lambda :exportJoblib('pd'))
 
     edit = bar.addMenu("Edit")
+
+    editUndo = edit.addAction('Undo')
+    editUndo.setShortcut(QKeySequence("Ctrl+Z"))
+    editUndo.triggered.connect(lambda:tableWidget.model().undo())
+
     editCut= edit.addAction("cu&t")
     editCut.setShortcut(QKeySequence("Ctrl+X"))
-    #editCut.trigger.connect(cutCopyPasteHandler)
+    #editCut.triggered.connect(cutCopyPasteHandler)
 
     edit.addAction("copy")#.setShortcut("Ctrl+C")
     edit.addAction("paste")#.setShortcut("Ctrl+V")
