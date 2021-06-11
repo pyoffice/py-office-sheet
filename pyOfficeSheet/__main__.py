@@ -668,19 +668,31 @@ def spreadsheet(screen_width,screen_height):
         tableWidget.resizeRowsToContents()
         tableWidget.resizeColumnsToContents()
 
-    fontTypeLabel = QLabel('style:')
     fontTypeCB = QComboBox()
     
     fontTypeCB.addItems(QFontDatabase().families())
+    fontTypeCB.setFixedWidth(int(screen_height/8))
+    fontTypeCB.setCurrentText('Noto Sans New Tai Lue')
+    fontTypeCB.currentIndexChanged.connect(lambda:tableWidget.setFont(QFont(fontTypeCB.currentText()))&tableWidget.update()& changeSettings('font',fontTypeCB.currentText()))
+    tableWidget.setFont(QFont(fontTypeCB.currentText()))
 
-    fontSizeLabel = QLabel('fontsize:')
     fontSizeCB = QComboBox()
     fontSizeCB.addItems([str(i) for i in range(6,24)])
+    fontSizeCB.setCurrentText(str(tableWidget.font().pointSize()))
+
+    def setFontSize():
+        font = tableWidget.font()
+        font.setPointSize(int(fontSizeCB.currentText()))
+        tableWidget.setFont(font)
+        tableWidget.update()
+        changeSettings('fontsize',fontSizeCB.currentText())
+
+    fontSizeCB.currentIndexChanged.connect(setFontSize)
 
     dtypeLabel = QLabel('dtype:')
     dtypeLabel2 = QLabel('object')
-    dtypeCB = QComboBox()
-    dtypeCB.addItems(['float32','float64','int','complex','bytes','str'])
+    #dtypeCB = QComboBox()
+    #dtypeCB.addItems(['float32','float64','int','complex','bytes','str'])
 
     rowLabel = QLabel('rows:')
     rowCount = QSpinBox()
@@ -695,11 +707,12 @@ def spreadsheet(screen_width,screen_height):
     columnCount.setFixedSize(100,30)
 
     bar1 = QToolBar()
+    bar1.setIconSize(QSize(int(screen_height/30),int(screen_height/30)))
     bar1.addAction(QIcon(os.path.join(pic_file_path,'save.png')),'Save file').triggered.connect(saveFile)
     bar1.addAction(QIcon(os.path.join(pic_file_path,'file.png')),'Open file').triggered.connect(pick_sys_file)
     bar1.addAction(QIcon(os.path.join(pic_file_path,'newFile.png')),'New file')
     bar1.addSeparator()
-    bar1.addAction(QIcon(os.path.join(pic_file_path,'exportPDF.png')),'Export pdf')
+    bar1.addAction(QIcon(os.path.join(pic_file_path,'exportCSV.png')),'Export csv')
     bar1.addAction(QIcon(os.path.join(pic_file_path,'printer.png')),'Print')
     bar1.addSeparator()
     bar1.addAction(QIcon(os.path.join(pic_file_path,'cut_icon.png')),'Cut')
@@ -710,14 +723,12 @@ def spreadsheet(screen_width,screen_height):
     menuLayout_home.addWidget(bar1)
 
     bar2 = QToolBar()
-
-    bar2.addWidget(fontTypeLabel)
+    bar2.setIconSize(QSize(int(screen_height/30),int(screen_height/30)))
     bar2.addWidget(fontTypeCB)
-    bar2.addWidget(fontSizeLabel)
     bar2.addWidget(fontSizeCB)
     bar2.addWidget(dtypeLabel)
     bar2.addWidget(dtypeLabel2)
-    bar2.addWidget(dtypeCB)
+    bar2.addSeparator()
     bar2.addWidget(rowLabel)
     bar2.addWidget(rowCount)
     bar2.addWidget(columnLabel)
