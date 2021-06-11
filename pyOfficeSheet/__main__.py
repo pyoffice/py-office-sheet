@@ -834,6 +834,10 @@ def spreadsheet(screen_width,screen_height):
     editUndo.setShortcut(QKeySequence("Ctrl+Z"))
     editUndo.triggered.connect(lambda:tableWidget.model().undo())
 
+    editRedo = edit.addAction('Redo')
+    editRedo.setShortcut(QKeySequence("Ctrl+Shift+Z"))
+    editRedo.triggered.connect(lambda:tableWidget.model().redo())
+
     editCut= edit.addAction("cu&t")
     editCut.setShortcut(QKeySequence("Ctrl+X"))
     #editCut.triggered.connect(cutCopyPasteHandler)
@@ -875,10 +879,19 @@ def spreadsheet(screen_width,screen_height):
     viewStyle.addAction('Fusion')
     viewStyle.addAction('Windows')
 
+    def changeTheme(theme):
+        if theme == 'dark':
+            mainWidget.setStyleSheet('background-color:#2f2f35; color:white;')
+        elif theme == 'lite':
+            mainWidget.setStyleSheet('background-color:white; color:black;')
+        elif theme == 'system':
+            mainWidget.setStyleSheet('')
+        changeSettings('theme',theme)
+
     viewTheme = view.addMenu('Theme')
-    viewTheme.addAction('Dark').triggered.connect(lambda : mainWidget.setStyleSheet('background-color:#2f2f35; color:white;') | changeSettings('theme','dark'))
-    viewTheme.addAction('Lite').triggered.connect(lambda : mainWidget.setStyleSheet('background-color:white; color:black;') | changeSettings('theme','lite'))
-    viewTheme.addAction('System').triggered.connect(lambda: mainWidget.setStyleSheet('') | changeSettings('theme','system'))
+    viewTheme.addAction('Dark').triggered.connect(lambda : changeTheme('dark'))
+    viewTheme.addAction('Lite').triggered.connect(lambda : changeTheme('lite'))
+    viewTheme.addAction('System').triggered.connect(lambda: changeTheme('system'))
 
 
     
@@ -934,6 +947,13 @@ def spreadsheet(screen_width,screen_height):
     with open(jsonpath,'r') as f:
         json = f.read()
     json = json_loads(json) # convert json to dict
+
+    if 'font' in json:
+        fontTypeCB.setCurrentText(json['font'])
+    if 'fontsize' in json:
+        fontSizeCB.setCurrentText(json['fontsize'])
+    if 'theme' in json:
+        changeTheme(json['theme'])
 
 
     return table_tab_box # return the main layout
