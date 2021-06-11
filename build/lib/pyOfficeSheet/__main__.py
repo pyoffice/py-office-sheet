@@ -32,6 +32,7 @@
 
 
 import gc, sys, joblib
+import pyOfficeSheet
 from os import close
 from typing import Any
 
@@ -43,6 +44,8 @@ import pandas as pd
 import numpy as np
 from string import ascii_uppercase
 from webbrowser import open as webbrowser_open
+import inspect
+print(inspect.getfile(pyOfficeSheet))
 
 try :
     import spreadsheet_command

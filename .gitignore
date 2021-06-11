@@ -11,3 +11,4 @@ entry
 py_office_sheet.egg-info
 dist/
 .dist/
+build/

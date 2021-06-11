@@ -31,7 +31,8 @@
 #     |_|                                                 
 
 
-import gc, sys, joblib
+import gc, sys, joblib,os
+import pyOfficeSheet
 from os import close
 from typing import Any
 
@@ -43,6 +44,8 @@ import pandas as pd
 import numpy as np
 from string import ascii_uppercase
 from webbrowser import open as webbrowser_open
+from inspect import getfile
+
 
 try :
     import spreadsheet_command
@@ -175,7 +178,7 @@ def spreadsheet(screen_width,screen_height):
         if filter == False:
             filter = "All files (*)"
 
-        file_name, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', 'c://', filter=filter)
+        file_name, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', filter=filter)
         type = guess_type(file_name)
 
         print(type)
@@ -253,7 +256,7 @@ def spreadsheet(screen_width,screen_height):
         global pandas_data
         if pick:
             filter = 'Python Object(*.npobj *.pdobj)'
-            filename, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', 'c://', filter=filter)
+            filename, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', filter=filter)
         if '.npobj' in filename:
             data = joblib.load(filename)
             header = None
@@ -294,10 +297,10 @@ def spreadsheet(screen_width,screen_height):
         global saved_file
         filter = "Pandas Object(*.pdobj);;Numpy Object(*.npobj);;CSV(*.csv);;JSON(*.json);;HTML(*.html);;Excel(*.xlsx);;PDF( *.pdf)"
         if saveAs:
-            directory, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File', 'c://',filter=filter)
+            directory, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File',filter=filter)
 
         elif directory==None and current_file_name == None:
-            directory, filter=QFileDialog.getSaveFileName(menuWidget,'Save File','c://',filter=filter)
+            directory, filter=QFileDialog.getSaveFileName(menuWidget,'Save File',filter=filter)
 
         elif directory!=None:
             directory = str(directory)
@@ -351,7 +354,7 @@ def spreadsheet(screen_width,screen_height):
 
     def exportJoblib(dtype='np'): # export numpy array by joblib
 
-        filename, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File', 'c://')
+        filename, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File')
 
         if dtype=='np':
             filename += '.npobj'
@@ -386,11 +389,12 @@ def spreadsheet(screen_width,screen_height):
 #  f:::::::f              uu::::::::uu:::un::::n    n::::n  cc:::::::::::::::c        tt:::::::::::tti::::::i oo:::::::::::oo   n::::n    n::::n s:::::::::::ss  
 #  fffffffff                uuuuuuuu  uuuunnnnnn    nnnnnn    cccccccccccccccc          ttttttttttt  iiiiiiii   ooooooooooo     nnnnnn    nnnnnn  sssssssssss    
                                                                                                                                                                
+    pic_file_path = os.path.join(getfile(pyOfficeSheet).replace('__init__.py',''),'pic','icon')
 
     def alertbox(err,arg=False): # a function to alert user when error occourse
         alert = QMessageBox()
         alert.setWindowTitle('ERROR')
-        alert.setWindowIcon(QIcon('pic/icon/warning.png'))
+        alert.setWindowIcon(QIcon(os.path.join(pic_file_path,'warning.png')))
         alert.setText(str(err))
         alert.setAttribute(Qt.WA_DeleteOnClose) # prevent memory leak
         alert.setTextInteractionFlags(Qt.TextBrowserInteraction)
@@ -440,7 +444,7 @@ def spreadsheet(screen_width,screen_height):
     def manageFunction():
         manage_function_box = QDialog()
         manage_function_box.setWindowTitle('Manage Functions')
-        manage_function_box.setWindowIcon(QIcon('pic/icon/main.png'))
+        manage_function_box.setWindowIcon(QIcon(os.path.join(pic_file_path,'pic/icon/main.png')))
         manage_function_box.setGeometry(screen_width/4,screen_height/16
                                         ,screen_width/2,screen_height/1.2)
         layout = QVBoxLayout()
@@ -474,11 +478,9 @@ def spreadsheet(screen_width,screen_height):
                 from subprocess import check_call
 
                 # upgrade pillow may resolve the problem
-                check_call([executable, "-m", "pip", "install", '-U', 'pillow'])
+                err = check_call([executable, "-m", "pip", "install", '-U', 'pillow'])
 
-                i = QMessageBox()  
-                i.setText(e + '\nnow upgrading pillow')
-                i.exec_()
+                alertbox(e + '\r\nnow upgrading pillow')
 
                 from matplotlib import pyplot as plt # reimport after upgrade
 
@@ -693,18 +695,18 @@ def spreadsheet(screen_width,screen_height):
     columnCount.setFixedSize(100,30)
 
     bar1 = QToolBar()
-    bar1.addAction(QIcon('pic/icon/save.png'),'Save file').triggered.connect(saveFile)
-    bar1.addAction(QIcon('pic/icon/file.jpeg'),'Open file').triggered.connect(pick_sys_file)
-    bar1.addAction(QIcon('pic/icon/newFile.png'),'New file')
+    bar1.addAction(QIcon(os.path.join(pic_file_path,'save.png')),'Save file').triggered.connect(saveFile)
+    bar1.addAction(QIcon(os.path.join(pic_file_path,'file.jpeg')),'Open file').triggered.connect(pick_sys_file)
+    bar1.addAction(QIcon(os.path.join(pic_file_path,'newFile.png')),'New file')
     bar1.addSeparator()
-    bar1.addAction(QIcon('pic/icon/exportPDF.png'),'Export pdf')
-    bar1.addAction(QIcon('pic/icon/printer.png'),'Print')
+    bar1.addAction(QIcon(os.path.join(pic_file_path,'exportPDF.png')),'Export pdf')
+    bar1.addAction(QIcon(os.path.join(pic_file_path,'printer.png')),'Print')
     bar1.addSeparator()
-    bar1.addAction(QIcon('pic/icon/cut_icon.png'),'Cut')
+    bar1.addAction(QIcon(os.path.join(pic_file_path,'cut_icon.png')),'Cut')
     bar1.addAction(QIcon(),'Copy')
     bar1.addAction(QIcon(),'Paste')
     bar1.addSeparator()
-    bar1.addAction(QIcon('pic/icon/cellResize.png'),'resize cell to content').triggered.connect(resizeTableToContent)
+    bar1.addAction(QIcon(os.path.join(pic_file_path,'cellResize.png')),'resize cell to content').triggered.connect(resizeTableToContent)
     menuLayout_home.addWidget(bar1)
 
     bar2 = QToolBar()
