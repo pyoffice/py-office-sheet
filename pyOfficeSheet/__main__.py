@@ -45,7 +45,8 @@ import numpy as np
 from string import ascii_uppercase
 from webbrowser import open as webbrowser_open
 from inspect import getfile
-
+from json import loads as json_loads
+from json import dumps as json_dumps
 
 try :
     import spreadsheet_command
@@ -71,6 +72,7 @@ def spreadsheet(screen_width,screen_height):
 
             self.array = array # call current array later through tableWidget.model().array
             self.headers = headers
+            self.stack = QUndoStack()
 
             self.di=dict(zip([str((ord(c)%32)-1) for c in ascii_uppercase],ascii_uppercase))
 
@@ -119,8 +121,10 @@ def spreadsheet(screen_width,screen_height):
             if role == Qt.EditRole: # check if func called correctly
                 if value:
 
+                    self.stack.push(CellEdit(index, value, self)) # push a new command
+
                     if value[0] == '=': # '=' indicates to perform a function
-                        return True
+                        pass
 
                     saved_file = False # indicate file modifyed
 
@@ -136,8 +140,30 @@ def spreadsheet(screen_width,screen_height):
                 else:
                     return False # vlue not provided mal function call
 
+            def undo(self):
+                self.stack.undo()
+            def redo(self):
+                self.stack.redo()
         def flags(self, index): # indicate the model's flags
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable 
+
+    # support for undo redo command
+    class CellEdit(QUndoCommand): # a new command is pushed to the model stack every time cell is edit
+
+        def __init__(self, index, value, model, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.index = index # save the cell location
+            self.value = value # save the new value 
+            self.prev = model.list_data[index.row()][index.column()] # save the previous value
+            self.model = model # a pointer to the model
+
+        def undo(self):
+            # set the specific cell to the previous value
+            self.model.list_data[self.index.row()][self.index.column()] = self.prev
+
+        def redo(self):
+            # set the specific cell to the new value
+            self.model.list_data[self.index.row()][self.index.column()] = self.value
 
 ############################################################################################################################################################
 ############################## read stuff ##################################################################################################################
@@ -161,48 +187,47 @@ def spreadsheet(screen_width,screen_height):
 #  rrrrrrr                eeeeeeeeeeeeee  aaaaaaaaaa  aaaa  ddddddddd   ddddd       sssssssssss              ttttttttttt      uuuuuuuu  uuuufffffffff           fffffffff            
                                                                                                                                                                            
 
-    def pick_sys_file(filter="All files (*)"):
+    def pick_sys_file(filter="All files (*)"): # this func is called whenever user open or import a file
         global current_file_name, saved_file
 
-        if saved_file == False:
+        if saved_file == False: # if file not save, opening new file will remove the data
 
             m = QMessageBox()
             m.setWindowTitle('file not save')
             ret = m.question(mainWidget,'', "open new file without saving?", m.Yes | m.No,m.No)
             
             if ret == m.No:
-                return None
+                return False # stop the func 
 
-        from mimetypes import guess_type
+        from mimetypes import guess_type # this package is not necessary, can be remove in future release
 
         if filter == False:
-            filter = "All files (*)"
+            filter = "All files (*)" # user can choose any file
 
         file_name, filter = QFileDialog.getOpenFileName(menuWidget, 'Open File', filter=filter)
-        type = guess_type(file_name)
+
+        type = guess_type(file_name) 
 
         print(type)
 
         if 'text/csv' in type:
-            opencsv(file_name)
-        elif 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in type:
-            openexel(file_name)
 
-        elif '.pdobj' in file_name or '.npobj' in file_name:
+            opencsv(file_name) # open as csv
+
+        elif 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in type:
+
+            openexel(file_name) # open as excel
+
+        elif '.pdobj' in file_name or '.npobj' in file_name: # guess_type does not support binary formats
+
             importJoblib(pick=False,filename=file_name,filter=filter)
 
         else:
+            # hyperlink to github discussions
             alertbox('<p>file type not supported yet\r\n</p><p>request feature on:\n</p><a href="https://github.com/YC-Lammy/np_spreadsheet/discussions">github.com/YC-Lammy/np_spreadsheet/discussions</a>',)
             return None
 
-        column = tableWidget.model().columnCount()
-        columnCount.setRange(column, column+10000)
-        columnCount.setValue(column)
-        row = tableWidget.model().rowCount()
-        rowCount.setRange(row, row +10000)
-        rowCount.setValue(row)
-
-        dtypeLabel2.setText(tableWidget.model().array.dtype.name)
+        updateInfo()
 
         current_file_name = file_name
         saved_file = True
@@ -413,13 +438,31 @@ def spreadsheet(screen_width,screen_height):
     def changeSettings(key,value):
         settings[key] = value
 
+    def updateInfo(): # update GUI info
+        column = tableWidget.model().columnCount()
+        columnCount.setRange(column, column+10000)
+        columnCount.setValue(column)
+        row = tableWidget.model().rowCount()
+        rowCount.setRange(row, row +10000)
+        rowCount.setValue(row)
+        dtypeLabel2.setText(tableWidget.model().array.dtype.name)
+
     def spreadsheetCommand(interactive=False,scripting = False): # call function from spreadsheet command.py
         global saved_file
         spreadsheet_command.main(commandBar,printOutLabel,tableWidget,scripting=scripting,interact=interactive,screen_width=screen_width,screen_height=screen_height)
         saved_file = False
+        updateInfo()
 
     def commandHandler(event): # handles the keyboard input of the command QLineEdit
+
         text = event.text()
+
+        if event.key() == 16777235:
+            commandBar.clear()
+            commandBar.insert('lastcommand')
+            spreadsheetCommand()
+            return
+
         if text == '[':
             commandBar.insert(']')
             commandBar.cursorBackward(False, 1)
@@ -443,6 +486,7 @@ def spreadsheet(screen_width,screen_height):
 
     def manageFunction():
         manage_function_box = QDialog()
+        manage_function_box.setWindowModality(Qt.WindowModal)
         manage_function_box.setWindowTitle('Manage Functions')
         manage_function_box.setWindowIcon(QIcon(os.path.join(pic_file_path,'pic/icon/main.png')))
         manage_function_box.setGeometry(screen_width/4,screen_height/16
@@ -578,6 +622,7 @@ def spreadsheet(screen_width,screen_height):
             if  'title' in plt_setting:
                 titleEdit.setText(plt_setting['title'])
 
+        box.setWindowModality(Qt.WindowModal)
         box.setAttribute(Qt.WA_DeleteOnClose)
         box.exec_()
         box.deleteLater()
@@ -673,7 +718,13 @@ def spreadsheet(screen_width,screen_height):
     fontTypeCB.addItems(QFontDatabase().families())
     fontTypeCB.setFixedWidth(int(screen_height/8))
     fontTypeCB.setCurrentText('Noto Sans New Tai Lue')
-    fontTypeCB.currentIndexChanged.connect(lambda:tableWidget.setFont(QFont(fontTypeCB.currentText()))&tableWidget.update()& changeSettings('font',fontTypeCB.currentText()))
+
+    def setFont():
+        tableWidget.setFont(QFont(fontTypeCB.currentText()))
+        tableWidget.update()
+        changeSettings('font',fontTypeCB.currentText())
+
+    fontTypeCB.currentIndexChanged.connect(setFont)
     tableWidget.setFont(QFont(fontTypeCB.currentText()))
 
     fontSizeCB = QComboBox()
@@ -865,10 +916,13 @@ def spreadsheet(screen_width,screen_height):
 
     menuhelp = bar.addAction('help').triggered.connect(lambda : webbrowser_open('https://github.com/YC-Lammy/np_spreadsheet/issues'))
 
-    from json import loads as json_loads
-    #with open('config.json','r') as f:
-        #json = f.read()
-    #json = json_loads(json)
+    # font, fontsize, theme
+    # get the module path and read config file
+    jsonpath = os.path.join(getfile(pyOfficeSheet).replace('__init__.py',''),'config.json')
+
+    with open(jsonpath,'r') as f:
+        json = f.read()
+    json = json_loads(json) # convert json to dict
 
 
     return table_tab_box # return the main layout
@@ -926,6 +980,12 @@ def main():
     mainWidget.setWindowTitle('spreadsheet') # actual title not desided
 
     app.exec_()
+    jsonpath = os.path.join(getfile(pyOfficeSheet).replace('__init__.py',''),'config.json')
+
+    with open(jsonpath,'w') as f:
+        f.write(json_dumps(settings))
+        f.close()
+    
     gc.collect()
     sys.exit()
 

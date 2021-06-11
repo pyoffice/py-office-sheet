@@ -47,10 +47,13 @@ def getCellValue(row,column):
         column = int(''.join([di[i] for i in ascii.split(None) ]))
         return table.model().array[int(row)][int(column)]
 
+history_commands = []
+command_num = {'num':0}
+
 def main(commandBar, printOutLabel, tableWidget,scripting = False, interact=False,cellfunc=False,screen_width=None,screen_height=None):
     import numpy as np
     
-
+    
     model = tableWidget.model
 
     def print(*args,**kw):
@@ -74,7 +77,7 @@ def main(commandBar, printOutLabel, tableWidget,scripting = False, interact=Fals
         return d
     
     dtype = getDtype
-    commands = []
+    
 
 
     class column:
@@ -102,6 +105,19 @@ def main(commandBar, printOutLabel, tableWidget,scripting = False, interact=Fals
     if scripting == False and interact==False:
         try:
             command = commandBar.text()
+
+            if command == 'lastcommand':
+                commandBar.clear()
+                num = -1-command_num['num']
+                if len(history_commands)< -(num):
+                    command_num['num'] = 0
+                    num = -1
+                commandBar.insert(history_commands[num])
+                command_num['num']+=1
+                return
+
+            command_num['num'] = 0
+            history_commands.append(command)
             command = compile(command, 'user', 'exec')
             exec(command)
         except Exception as e:
@@ -214,6 +230,7 @@ def main(commandBar, printOutLabel, tableWidget,scripting = False, interact=Fals
         a.start()
     elif cellfunc:
         return
+
 
 
 def profile(text,tableWidget):
