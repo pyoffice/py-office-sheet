@@ -9,3 +9,5 @@ test.py
 .vscode
 entry
 py_office_sheet.egg-info
+dist/
+.dist/
