@@ -1,4 +1,4 @@
-# spreadsheet
+# py-office-sheet
 A cross-platform spreadsheet based on pandas and numpy for effecient data processing
 
 in progress...
