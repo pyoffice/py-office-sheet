@@ -696,7 +696,7 @@ def spreadsheet(screen_width,screen_height):
 
     bar1 = QToolBar()
     bar1.addAction(QIcon(os.path.join(pic_file_path,'save.png')),'Save file').triggered.connect(saveFile)
-    bar1.addAction(QIcon(os.path.join(pic_file_path,'file.jpeg')),'Open file').triggered.connect(pick_sys_file)
+    bar1.addAction(QIcon(os.path.join(pic_file_path,'file.png')),'Open file').triggered.connect(pick_sys_file)
     bar1.addAction(QIcon(os.path.join(pic_file_path,'newFile.png')),'New file')
     bar1.addSeparator()
     bar1.addAction(QIcon(os.path.join(pic_file_path,'exportPDF.png')),'Export pdf')
