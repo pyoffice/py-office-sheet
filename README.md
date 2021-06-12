@@ -2,7 +2,7 @@
 A cross-platform spreadsheet based on pandas and numpy for effecient data processing
 
 in progress...
-
+# installation
 to install:
 ```
     pip install py-office-sheet
@@ -11,6 +11,7 @@ to launch app in console:
 ```
     $ py-office-sheet
 ```
+# introduction
 - default saving format: pandas data object(.pdobj), upto 3 times less memory use compare to generic format such as excel or csv. this is done by joblib, therefore any application that has python support would be able to read it. It makes data managment easier when doing data analyze or machine learning.
 
     to import file in python:
