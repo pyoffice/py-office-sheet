@@ -1007,6 +1007,7 @@ for more information, visit https://github.com/YC-Lammy/py-office-sheet
         """)
         return 0
 
+
     if '-uninstall' in sys.argv or '--uninstall' in sys.argv or 'uninstall' in sys.argv:
 
         print('after this operation, py-office-sheet will be uninstalled')
@@ -1060,9 +1061,10 @@ for more information, visit https://github.com/YC-Lammy/py-office-sheet
     mainWidget.show()
     mainWidget.closeEvent = closeEventHandler # reassign the app's close event
     mainWidget.setWindowState(Qt.WindowMaximized)
-    mainWidget.setWindowTitle('spreadsheet') # actual title not desided
+    mainWidget.setWindowTitle('py-office-sheet') # actual title not desided
 
     app.exec_()
+
     jsonpath = os.path.join(getfile(pyOfficeSheet).replace('__init__.py',''),'config.json')
 
     with open(jsonpath,'w') as f:
