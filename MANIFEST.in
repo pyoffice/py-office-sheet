@@ -2,3 +2,4 @@ include pyOfficeSheet/pic/icon/*.png
 include pyOfficeSheet/pic/icon/*.jpeg
 include pyOfficeSheet/pic/icon/*.jpg
 include pyOfficeSheet/*.json
+include LICENSE

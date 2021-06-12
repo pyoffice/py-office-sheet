@@ -55,7 +55,7 @@ except:
     from pyOfficeSheet import spreadsheet_command
 
 
-def spreadsheet(screen_width,screen_height):
+def spreadsheet(screen_width,screen_height,file=None):
     global saved_file
 
 ########################################################################################################################################################
@@ -673,13 +673,27 @@ def spreadsheet(screen_width,screen_height):
 #                                                                              p:::::::p           
 #                                                                              p:::::::p           
 #                                                                              ppppppppp  
-
-
     data = np.array([['']*60]*60,dtype='object')# empty array
+    headers = None
+
+    tableWidget = QTableView()
+    tableWidget.setModel(MyTableModel(data,headers=headers))
+    
+    if file != None:
+        
+        if os.path.isfile(file):
+            if '.csv' in file:
+                opencsv(file)
+
+            else:
+                importJoblib(pick=False,filename=file)
+
+            updateInfo()
+
+            current_file_name = file
 
     table_tab_box = QVBoxLayout()
-    tableWidget = QTableView()
-    tableWidget.setModel(MyTableModel(data))
+
     tableWidget.horizontalHeader().stretchLastSection()
     tableWidget.setStyleSheet('background-color:white;color:black;')
 
@@ -978,7 +992,45 @@ def spreadsheet(screen_width,screen_height):
                                                                                                                                           
 
 def main():
+
     global plt_setting, saved_file, current_file_name, settings, mainWidget
+
+######################### handle sys argvs ###########################################################################################################
+
+    print(sys.argv)
+
+    if '-help' in sys.argv or '--help' in sys.argv or 'help' in sys.argv:
+        print("""Usage: py-office-sheet [<option>...]
+py-office-sheet cross-platform spreadsheet based on pandas and numpy for effecient data processing\n
+for more information, visit https://github.com/YC-Lammy/py-office-sheet
+
+        """)
+        return 0
+
+    if '-uninstall' in sys.argv or '--uninstall' in sys.argv or 'uninstall' in sys.argv:
+
+        print('after this operation, py-office-sheet will be uninstalled')
+
+        ans = input('\r\nare you sure you want to uninstall? y/n')
+
+        if ans not in ('y','n'):
+            while ans not in ('y','n'): # loop until user anser
+                ans = input('are you sure you want to uninstall? y/n')
+
+        if ans == 'y':
+            from subprocess import run
+            run([sys.executable,'-m','pip','uninstall','py-office-sheet'])
+        elif ans == 'n':
+            print('\r\n action abort.')
+        
+        return 0
+
+######################### set up GUI ######################################################################################################################## 
+    file = None
+
+    for i in sys.argv:
+        if '.pdobj' in i or '.npobj' in i or '.csv' in i:
+            file = i 
 
     saved_file = True #state if the file is modified, notice user to save file
     current_file_name = None #current file name is the file user opened using open file function
@@ -1004,7 +1056,7 @@ def main():
     app = QApplication(['-style fusion']+sys.argv)
 
     mainWidget = QWidget()
-    mainWidget.setLayout(spreadsheet(1920,1080)) # spreedsheet returns a layout
+    mainWidget.setLayout(spreadsheet(1920,1080,file=file)) # spreedsheet returns a layout
     mainWidget.show()
     mainWidget.closeEvent = closeEventHandler # reassign the app's close event
     mainWidget.setWindowState(Qt.WindowMaximized)

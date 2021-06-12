@@ -20,7 +20,7 @@ import (
 )
 
 func main() {
-	out, err := exec.Command("python3.9", "main.py").Output()
+	out, err := exec.Command("py-office-sheet").Output()
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
