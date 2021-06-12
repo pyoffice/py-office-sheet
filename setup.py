@@ -29,10 +29,9 @@ setup(
     ],
     packages=["pyOfficeSheet"],
     include_package_data=True,
-    install_requires=["joblib", "PySide2","pandas","numpy","matplotlib",'install_freedesktop'],
-    setup_requires = ["install_freedesktop"],
+    install_requires=["joblib", "PySide2","pandas","numpy","matplotlib"],
     entry_points={
-        'gui_scripts': [
+        'console_scripts': [
             'py-office-sheet=pyOfficeSheet.__main__:main',],
     },
 )
