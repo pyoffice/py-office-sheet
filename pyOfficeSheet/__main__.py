@@ -646,7 +646,89 @@ def spreadsheet(screen_width,screen_height,file=None):
 
     ######################## manage Pip #####################################
     def managePip():
-        pass
+        from bs4 import BeautifulSoup
+        from urllib.parse import urljoin
+        import requests
+        import re
+        import pkg_resources
+        from subprocess import Popen, PIPE
+
+        installed_packages = pkg_resources.working_set
+        listPK = []
+        installedPK = []
+        for i in installed_packages:
+            listPK.append([i.key,i.version])
+        scroll = QScrollArea()
+        mainWidget = QWidget()
+        mainlayout = QVBoxLayout()
+
+        searchbar = QLineEdit()
+        searchbar.setPlaceholderText('search to install packages')
+        mainlayout.addWidget(searchbar)
+        mainlayout.addWidget(scroll)
+
+        manageBt = QPushButton('install new packages')
+        mainlayout.addWidget(manageBt)
+
+        box = QDialog()
+        box.setMinimumSize(screen_width/2,screen_height/2)
+        box.setWindowTitle('Analyze data')
+
+        
+
+        layout = QGridLayout(mainWidget)
+
+        num = 0
+        def pip_upgrade(package):
+            p = Popen([sys.executable,'-m','pip','install','--upgrade',package], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            output, err = p.communicate()
+
+            alertbox(str(output)[2:-1]+'\r\n'+str(err))
+
+        for i in listPK:
+            layout.addWidget(QLabel(i[0]+'=='+i[1]),num,0)
+            ub= QPushButton('upgrade')
+            
+            # force free variable i into a fixed statment
+            exec(f"ub.clicked.connect(lambda:pip_upgrade('{i[0]}'))",locals())
+            
+            layout.addWidget(ub,num,1)
+            layout.addWidget(QPushButton('uninstall'),num,2)
+            num+=1
+
+
+        box.setLayout(mainlayout)
+
+        scroll.setWidget(mainWidget)
+        scroll.setWidgetResizable(True)
+
+        box.setWindowModality(Qt.WindowModal)
+        box.setAttribute(Qt.WA_DeleteOnClose)
+        box.exec_()
+
+
+        def search(query: str):
+            api_url = 'https://pypi.org/search/'
+            snippets = []
+            s = requests.Session()
+            for page in range(1, 3):
+                params = {'q': query, 'page': page}
+                r = s.get(api_url, params=params)
+                soup = BeautifulSoup(r.text, 'html.parser')
+                snippets += soup.select('a[class*="snippet"]')
+                if not hasattr(s, 'start_url'):
+                    s.start_url = r.url.rsplit('&page', maxsplit=1).pop(0)
+
+            for snippet in snippets:
+                link = urljoin(api_url, snippet.get('href'))
+                package = re.sub(r"\s+", " ", snippet.select_one('span[class*="name"]').text.strip())
+                version = re.sub(r"\s+", " ", snippet.select_one('span[class*="version"]').text.strip())
+                released = re.sub(r"\s+", " ", snippet.select_one('span[class*="released"]').text.strip())
+                description = re.sub(r"\s+", " ", snippet.select_one('p[class*="description"]').text.strip())
+                emoji = ':open_file_folder:'
+                #table.add_row(f'[link={link}]{emoji}[/link] {package}', version, released, description)
+
+            return
 
 ##############################################################################################################################################
 ############################ set up ##########################################################################################################
@@ -997,7 +1079,7 @@ def main():
 
 ######################### handle sys argvs ###########################################################################################################
 
-    print(sys.argv)
+    print('argvs:'+str(sys.argv))
 
     if '-help' in sys.argv or '--help' in sys.argv or 'help' in sys.argv:
         print("""Usage: py-office-sheet [<option>...]

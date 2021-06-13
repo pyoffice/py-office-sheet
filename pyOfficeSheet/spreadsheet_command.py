@@ -47,6 +47,8 @@ def getCellValue(row,column):
         column = int(''.join([di[i] for i in ascii.split(None) ]))
         return table.model().array[int(row)][int(column)]
 
+#####################################################################################################################################################################
+
 history_commands = []
 command_num = {'num':0}
 
@@ -65,10 +67,13 @@ def main(commandBar, printOutLabel, tableWidget,scripting = False, interact=Fals
         else:
             printOutLabel.setText(printOutLabel.text()+linesep+colsep.join( map(str,args)))
 
-    def getArray():
+
+    def array():
+        print(model().array)
         return model().array
 
-    def getHeaders():
+    def headers():
+        print(model().headers)
         return model().headers
 
     def getDtype():
@@ -77,6 +82,11 @@ def main(commandBar, printOutLabel, tableWidget,scripting = False, interact=Fals
         return d
     
     dtype = getDtype
+
+    def astype(dtype,order='K', casting='unsafe', subok=True, copy=True):
+
+        tableWidget.model().array = tableWidget.model().array.astype(dtype,order=order,casting=casting,subok=subok,copy=copy)
+        print('covert to: '+str(tableWidget.model().array.dtype.name))
     
 
 
@@ -93,7 +103,17 @@ def main(commandBar, printOutLabel, tableWidget,scripting = False, interact=Fals
 
         def delete(self):
             tableWidget.model().array = np.delete(tableWidget.model().array,self.column,1)
-            tableWidget.model().headers.pop(self.column)
+            if tableWidget.model().headers != None:
+                tableWidget.model().headers.pop(self.column)
+            tableWidget.update()
+
+    class row:
+        def __init__(self,num):
+            self.row = int(num)
+            self.data = tableWidget.model().array[self.row]
+
+        def delete(self):
+            tableWidget.model().array = np.delete(tableWidget.model().array,self.row,0)
             tableWidget.update()
 
 # write your functions here
