@@ -899,6 +899,7 @@ def spreadsheet(screen_width,screen_height,file=None):
 
 ########################### Menu bar ###############################################
     bar = QMenuBar()
+    bar.setNativeMenuBar(False)
     menuLayout.setMenuBar(bar)
     bar.setGeometry(0, 0, int(menuWidget.frameGeometry().width() / 1.6), int(screen_height / 10))
 
