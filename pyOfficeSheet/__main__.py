@@ -1137,9 +1137,12 @@ for more information, visit https://github.com/YC-Lammy/py-office-sheet
 
 
     app = QApplication(['-style fusion']+sys.argv)
+    size = app.primaryScreen().size()
+    screen_height = size.height()
+    screen_width = size.width()
 
     mainWidget = QWidget()
-    mainWidget.setLayout(spreadsheet(1920,1080,file=file)) # spreedsheet returns a layout
+    mainWidget.setLayout(spreadsheet(screen_width,screen_height,file=file)) # spreedsheet returns a layout
     mainWidget.show()
     mainWidget.closeEvent = closeEventHandler # reassign the app's close event
     mainWidget.setWindowState(Qt.WindowMaximized)
