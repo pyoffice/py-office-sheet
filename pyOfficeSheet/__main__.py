@@ -99,9 +99,11 @@ def spreadsheet(screen_width,screen_height,file=None):
                         try:
                             return self.headers[section]  # column headers maybe out of range
                         except :
-                            return self.formatNumericHeader(str(section)) # return number instead if out of range
+                            return str(section)
+                            #return self.formatNumericHeader(str(section)) # return number instead if out of range
                     else:
-                        return self.formatNumericHeader(str(section)) # column
+                        return str(section)
+                        #return self.formatNumericHeader(str(section)) # column
                 else:
                     return str(section)  # row
 
@@ -453,6 +455,7 @@ def spreadsheet(screen_width,screen_height,file=None):
         rowCount.setRange(row, row +10000)
         rowCount.setValue(row)
         dtypeLabel2.setText(tableWidget.model().array.dtype.name)
+        shapeLabel.setText('shape: '+str(tableWidget.model().array.shape))
 
     def spreadsheetCommand(interactive=False,scripting = False): # call function from spreadsheet command.py
         global saved_file
@@ -653,6 +656,30 @@ def spreadsheet(screen_width,screen_height,file=None):
         import pkg_resources
         from subprocess import Popen, PIPE
 
+        def searchPip(query: str):
+            api_url = 'https://pypi.org/search/'
+            snippets = []
+            s = requests.Session()
+            for page in range(1, 3):
+                params = {'q': query, 'page': page}
+                r = s.get(api_url, params=params)
+                soup = BeautifulSoup(r.text, 'html.parser')
+                snippets += soup.select('a[class*="snippet"]')
+                if not hasattr(s, 'start_url'):
+                    s.start_url = r.url.rsplit('&page', maxsplit=1).pop(0)
+            table = []
+            for snippet in snippets:
+                link = urljoin(api_url, snippet.get('href'))
+                package = re.sub(r"\s+", " ", snippet.select_one('span[class*="name"]').text.strip())
+                version = re.sub(r"\s+", " ", snippet.select_one('span[class*="version"]').text.strip())
+                released = re.sub(r"\s+", " ", snippet.select_one('span[class*="released"]').text.strip())
+                description = re.sub(r"\s+", " ", snippet.select_one('p[class*="description"]').text.strip())
+                emoji = ':open_file_folder:'
+                table.append([package,version,released,description])
+
+            return table
+
+
         installed_packages = pkg_resources.working_set
         listPK = []
         installedPK = []
@@ -663,12 +690,11 @@ def spreadsheet(screen_width,screen_height,file=None):
         mainlayout = QVBoxLayout()
 
         searchbar = QLineEdit()
-        searchbar.setPlaceholderText('search to install packages')
+        searchbar.setPlaceholderText('type and press enter to search for new packages')
+        searchbar.returnPressed.connect(lambda:print(searchbar.text()))
         mainlayout.addWidget(searchbar)
         mainlayout.addWidget(scroll)
 
-        manageBt = QPushButton('install new packages')
-        mainlayout.addWidget(manageBt)
 
         box = QDialog()
         box.setMinimumSize(screen_width/2,screen_height/2)
@@ -683,17 +709,51 @@ def spreadsheet(screen_width,screen_height,file=None):
             p = Popen([sys.executable,'-m','pip','install','--upgrade',package], stdin=PIPE, stdout=PIPE, stderr=PIPE)
             output, err = p.communicate()
 
-            alertbox(str(output)[2:-1]+'\r\n'+str(err))
+            alert = QMessageBox()
+            alert.setWindowTitle('Pip output')
+            alert.setWindowIcon(QIcon(os.path.join(pic_file_path,'warning.png')))
+            alert.setText(str(output)[2:-1]+'\r\n'+str(err))
+            alert.setAttribute(Qt.WA_DeleteOnClose) # prevent memory leak
+            alert.setTextInteractionFlags(Qt.TextBrowserInteraction)
+            alert.exec()
 
-        for i in listPK:
+        def pip_uninstall(package):
+            p = Popen([sys.executable,'-m','pip','uninstall',package,'-y'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            output, err = p.communicate()
+
+            alert = QMessageBox()
+            alert.setWindowTitle('Pip output')
+            alert.setWindowIcon(QIcon(os.path.join(pic_file_path,'warning.png')))
+            alert.setText(str(output)[2:-1]+'\r\n'+str(err))
+            alert.setAttribute(Qt.WA_DeleteOnClose) # prevent memory leak
+            alert.setTextInteractionFlags(Qt.TextBrowserInteraction)
+            alert.exec()
+
+        def pip_install(package):
+            p = Popen([sys.executable,'-m','pip','install',package], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            output, err = p.communicate()
+
+            alert = QMessageBox()
+            alert.setWindowTitle('Pip output')
+            alert.setWindowIcon(QIcon(os.path.join(pic_file_path,'warning.png')))
+            alert.setText(str(output)[2:-1]+'\r\n'+str(err))
+            alert.setAttribute(Qt.WA_DeleteOnClose) # prevent memory leak
+            alert.setTextInteractionFlags(Qt.TextBrowserInteraction)
+            alert.exec()
+
+        for i in sorted(listPK):
             layout.addWidget(QLabel(i[0]+'=='+i[1]),num,0)
             ub= QPushButton('upgrade')
             
             # force free variable i into a fixed statment
             exec(f"ub.clicked.connect(lambda:pip_upgrade('{i[0]}'))",locals())
             
+            ub2 = QPushButton('uninstall')
+
+            exec(f"ub2.clicked.connect(lambda:pip_uninstall('{i[0]}'))",locals())
+            
             layout.addWidget(ub,num,1)
-            layout.addWidget(QPushButton('uninstall'),num,2)
+            layout.addWidget(ub2,num,2)
             num+=1
 
 
@@ -706,29 +766,6 @@ def spreadsheet(screen_width,screen_height,file=None):
         box.setAttribute(Qt.WA_DeleteOnClose)
         box.exec_()
 
-
-        def search(query: str):
-            api_url = 'https://pypi.org/search/'
-            snippets = []
-            s = requests.Session()
-            for page in range(1, 3):
-                params = {'q': query, 'page': page}
-                r = s.get(api_url, params=params)
-                soup = BeautifulSoup(r.text, 'html.parser')
-                snippets += soup.select('a[class*="snippet"]')
-                if not hasattr(s, 'start_url'):
-                    s.start_url = r.url.rsplit('&page', maxsplit=1).pop(0)
-
-            for snippet in snippets:
-                link = urljoin(api_url, snippet.get('href'))
-                package = re.sub(r"\s+", " ", snippet.select_one('span[class*="name"]').text.strip())
-                version = re.sub(r"\s+", " ", snippet.select_one('span[class*="version"]').text.strip())
-                released = re.sub(r"\s+", " ", snippet.select_one('span[class*="released"]').text.strip())
-                description = re.sub(r"\s+", " ", snippet.select_one('p[class*="description"]').text.strip())
-                emoji = ':open_file_folder:'
-                #table.add_row(f'[link={link}]{emoji}[/link] {package}', version, released, description)
-
-            return
 
 ##############################################################################################################################################
 ############################ set up ##########################################################################################################
@@ -811,6 +848,31 @@ def spreadsheet(screen_width,screen_height,file=None):
     menuLayout_home = QVBoxLayout()
     menuLayout_home.setAlignment(Qt.AlignTop)
 
+
+    def numpyFn(func:str):
+        try:
+            if func == 'reshape':
+                tableWidget.model().array = tableWidget.model().array.reshape()
+                tableWidget.update()
+                updateInfo()
+
+        except Exception as e:
+            alertbox(e)
+
+    numpyBt = QToolButton()
+    numpyBt.setText('numpy')
+    numpyMenu = QMenu(numpyBt)
+
+    numpyMenu.addAction('reshape')
+    numpyMenu.addAction('resize')
+    numpyMenu.addAction('transpose')
+    numpyMenu.addAction('arround')
+    numpyMenu.addAction('slicing')
+    numpyMenu.addAction('ravel')
+
+    numpyBt.setMenu(numpyMenu)
+    numpyBt.setPopupMode(QToolButton.InstantPopup)
+
     def resizeTableToContent():
         tableWidget.resizeRowsToContents()
         tableWidget.resizeColumnsToContents()
@@ -859,19 +921,33 @@ def spreadsheet(screen_width,screen_height,file=None):
     columnCount.setReadOnly(True)
     columnCount.setFixedSize(100,30)
 
+    shapeLabel = QLabel('shape: '+str(tableWidget.model().array.shape))
+
     bar1 = QToolBar()
     bar1.setIconSize(QSize(int(screen_height/30),int(screen_height/30)))
     bar1.addAction(QIcon(os.path.join(pic_file_path,'save.png')),'Save file').triggered.connect(saveFile)
     bar1.addAction(QIcon(os.path.join(pic_file_path,'file.png')),'Open file').triggered.connect(pick_sys_file)
     bar1.addAction(QIcon(os.path.join(pic_file_path,'newFile.png')),'New file')
+
     bar1.addSeparator()
+
     bar1.addAction(QIcon(os.path.join(pic_file_path,'exportCSV.png')),'Export csv')
     bar1.addAction(QIcon(os.path.join(pic_file_path,'printer.png')),'Print')
+
     bar1.addSeparator()
+
     bar1.addAction(QIcon(os.path.join(pic_file_path,'cut_icon.png')),'Cut')
-    bar1.addAction(QIcon(),'Copy')
-    bar1.addAction(QIcon(),'Paste')
+    bar1.addAction('Copy')#.triggered.connect(cutCopyPasteHandler)
+    bar1.addAction('Paste')
+
     bar1.addSeparator()
+
+    bar1.addWidget(numpyBt)
+    bar1.addAction('reshape')
+    bar1.addAction('astype')
+
+    bar1.addSeparator()
+
     bar1.addAction(QIcon(os.path.join(pic_file_path,'cellResize.png')),'resize cell to content').triggered.connect(resizeTableToContent)
     menuLayout_home.addWidget(bar1)
 
@@ -882,10 +958,11 @@ def spreadsheet(screen_width,screen_height,file=None):
     bar2.addWidget(dtypeLabel)
     bar2.addWidget(dtypeLabel2)
     bar2.addSeparator()
-    bar2.addWidget(rowLabel)
-    bar2.addWidget(rowCount)
-    bar2.addWidget(columnLabel)
-    bar2.addWidget(columnCount)
+    bar2.addWidget(shapeLabel)
+    #bar2.addWidget(rowLabel)
+    #bar2.addWidget(rowCount)
+    #bar2.addWidget(columnLabel)
+    #bar2.addWidget(columnCount)
     menuLayout_home.addWidget(bar2)
 
     homeWidget = QWidget()
@@ -898,8 +975,14 @@ def spreadsheet(screen_width,screen_height,file=None):
     table_tab_box.addWidget(tableWidget)
 
 ########################### Menu bar ###############################################
+    
+    # the menu bar on mac os is absolutly disaster, menu that are not recognized by the os will not be rendered
+    # the solution is to also put it into the tool bar if sys.platform == 'darwin'(to do)
+
     bar = QMenuBar()
-    bar.setNativeMenuBar(False)
+
+    #bar.setNativeMenuBar(False)     # f**king prick mac os won't render the menu bar if not native
+
     menuLayout.setMenuBar(bar)
     bar.setGeometry(0, 0, int(menuWidget.frameGeometry().width() / 1.6), int(screen_height / 10))
 
@@ -1137,7 +1220,7 @@ for more information, visit https://github.com/YC-Lammy/py-office-sheet
                 event.ignore() # when user choose no, stop exit event
 
 
-    app = QApplication(['-style fusion']+sys.argv)
+    app = QApplication(sys.argv)
     size = app.primaryScreen().size()
     screen_height = size.height()
     screen_width = size.width()
