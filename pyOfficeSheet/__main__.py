@@ -331,6 +331,7 @@ def spreadsheet(screen_width,screen_height,file=None):
         global saved_file
         filter = "Pandas Object(*.pdobj);;Numpy Object(*.npobj);;CSV(*.csv);;JSON(*.json);;HTML(*.html);;Excel(*.xlsx);;PDF( *.pdf)"
         if saveAs:
+            global current_file_name
             directory, filter = QFileDialog.getSaveFileName(menuWidget, 'Save File',filter=filter)
 
         elif directory==None and current_file_name == None:
@@ -344,8 +345,6 @@ def spreadsheet(screen_width,screen_height,file=None):
             else:
                 filter = '.pdobj'
 
-        
-
         elif current_file_name !=None:
             directory= current_file_name
             filter = '.'+directory.split('.')[-1]
@@ -358,14 +357,20 @@ def spreadsheet(screen_width,screen_height,file=None):
         if '.pdobj' in filter:
             directory = directory+'.pdobj' if '.pdobj' not in directory else directory
             joblib.dump(data,directory,9)
+            if saveAs:
+                current_file_name = directory
 
         elif '.csv' in filter:
             directory = directory+'.csv' if '.csv' not in directory else directory
             data.to_csv(directory, index=False,header=False)
+            if saveAs:
+                current_file_name = directory
 
         elif '.json' in filter:
             directory = directory+'.json' if '.json' not in directory else directory
             out = data.to_json(directory,index=False,orient= 'table')
+            if saveAs:
+                current_file_name = directory
 
         elif '.html' in filter:
             directory = directory+'.html' if '.html' not in directory else directory
@@ -373,18 +378,28 @@ def spreadsheet(screen_width,screen_height,file=None):
             with open(directory,'w') as f:
                 f.write(html)
                 f.close()
+            if saveAs:
+                current_file_name = directory
 
         elif'.xlsx'in directory:
             directory = directory+'.xlsx' if '.xlsx' not in directory else directory
             data.to_excel(directory,index=False)
+            if saveAs:
+                current_file_name = directory
 
         elif '.h5'in filter:
+            directory = directory+'.h5' if '.h5' not in directory else directory
             data.to_hdf(directory,key='0')
+            if saveAs:
+                current_file_name = directory
 
         else :
             print('file type not supported yet')
             alertbox('file type not supported yet\nrequest feature on:\nhttps://github.com/YC-Lammy/np_spreadsheet/issues')
+            return None
         saved_file = True
+
+        return directory
 
     def exportJoblib(dtype='np'): # export numpy array by joblib
 
@@ -711,7 +726,7 @@ def spreadsheet(screen_width,screen_height,file=None):
 
             alert = QMessageBox()
             alert.setWindowTitle('Pip output')
-            alert.setWindowIcon(QIcon(os.path.join(pic_file_path,'warning.png')))
+            alert.setWindowIcon(mainWidget.style().standardIcon(QStyle.SP_MessageBoxInformation))
             alert.setText(str(output)[2:-1]+'\r\n'+str(err))
             alert.setAttribute(Qt.WA_DeleteOnClose) # prevent memory leak
             alert.setTextInteractionFlags(Qt.TextBrowserInteraction)
@@ -902,6 +917,15 @@ def spreadsheet(screen_width,screen_height,file=None):
         tableWidget.update()
         changeSettings('fontsize',fontSizeCB.currentText())
 
+    def printFile():
+        if saved_file == False or current_file_name == None:
+            dir = saveFile()
+        else:
+            dir = current_file_name
+
+        i = sys.platform
+        
+
     fontSizeCB.currentIndexChanged.connect(setFontSize)
 
     dtypeLabel = QLabel('dtype:')
@@ -923,6 +947,7 @@ def spreadsheet(screen_width,screen_height,file=None):
 
     shapeLabel = QLabel('shape: '+str(tableWidget.model().array.shape))
 
+########################################## toll bar1 #################################################################
     bar1 = QToolBar()
     bar1.setIconSize(QSize(int(screen_height/30),int(screen_height/30)))
     bar1.addAction(QIcon(os.path.join(pic_file_path,'save.png')),'Save file').triggered.connect(saveFile)
@@ -942,6 +967,10 @@ def spreadsheet(screen_width,screen_height,file=None):
 
     bar1.addSeparator()
 
+    bar1.addAction('undo')
+    bar1.addAction('redo')
+    bar1.addSeparator()
+
     bar1.addWidget(numpyBt)
     bar1.addAction('reshape')
     bar1.addAction('astype')
@@ -951,6 +980,7 @@ def spreadsheet(screen_width,screen_height,file=None):
     bar1.addAction(QIcon(os.path.join(pic_file_path,'cellResize.png')),'resize cell to content').triggered.connect(resizeTableToContent)
     menuLayout_home.addWidget(bar1)
 
+################################# tool bar2 ###############################################################################################
     bar2 = QToolBar()
     bar2.setIconSize(QSize(int(screen_height/30),int(screen_height/30)))
     bar2.addWidget(fontTypeCB)
@@ -971,6 +1001,7 @@ def spreadsheet(screen_width,screen_height,file=None):
     menuLayout.addWidget(homeWidget)
 
 ##########################################################################
+
     table_tab_box.addWidget(menuWidget)
     table_tab_box.addWidget(tableWidget)
 
