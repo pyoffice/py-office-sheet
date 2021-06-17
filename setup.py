@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="py-office-sheet",
-    version="0.1.193",
+    version="0.1.195",
     description="py-office-sheet is a gui based on pandas and numpy to process data efficienly",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -29,7 +29,7 @@ setup(
     ],
     packages=["pyOfficeSheet"],
     include_package_data=True,
-    install_requires=["joblib", "PySide2","pandas","numpy","matplotlib"],
+    install_requires=["joblib", "PySide2","pandas","numpy","matplotlib","pyshortcuts"],
     entry_points={
         'console_scripts': [
             'py-office-sheet=pyOfficeSheet.__main__:main',],
